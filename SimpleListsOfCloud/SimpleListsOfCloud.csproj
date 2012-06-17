@@ -119,6 +119,7 @@
     </Content>
     <Resource Include="Images\appbar.close.png" />
     <Resource Include="Images\appbar.delete.png" />
+    <Content Include="Images\appbar.back.png" />
     <Content Include="Images\appbar.refresh.0.png" />
     <Content Include="Images\appbar.upload.png" />
     <Content Include="SplashScreenImage.jpg" />

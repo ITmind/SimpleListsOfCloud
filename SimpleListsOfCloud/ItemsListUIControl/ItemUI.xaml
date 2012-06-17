@@ -119,7 +119,7 @@
             </Setter>
         </Style>
     </UserControl.Resources>
-    <Grid x:Name="LayoutRoot" Width="440" HorizontalAlignment="Center" Background="Transparent">
+    <Grid x:Name="LayoutRoot" Width="440" HorizontalAlignment="Center" Background="Transparent" Hold="onHold">
 
         <toolkit:GestureService.GestureListener>
             <toolkit:GestureListener GestureBegin="onDragStarted" DragDelta="onDragDelta" GestureCompleted="onDragCompleted" />

@@ -52,9 +52,10 @@
 
     <phone:PhoneApplicationPage.ApplicationBar>
         <shell:ApplicationBar IsVisible="True" IsMenuEnabled="True" BackgroundColor="#FFF2F2F2" ForegroundColor="Black">
-            <shell:ApplicationBarIconButton IconUri="/Images/appbar.upload.png" Text="Back" Click="ApplicationBarIconButton_Click_1" />
+            <shell:ApplicationBarIconButton IconUri="/Images/appbar.back.png" Text="Back" Click="ApplicationBarIconButton_Click_1" />
             <shell:ApplicationBarIconButton IconUri="/Images/appbar.refresh.1.png" Text="SkyDrive" Click="ApplicationBarIconButton_Click" x:Name="SyncButton" />
             <shell:ApplicationBar.MenuItems>
+                <shell:ApplicationBarMenuItem Text="Sort"/>
                 <shell:ApplicationBarMenuItem Text="Settings"/>
             </shell:ApplicationBar.MenuItems>
         </shell:ApplicationBar>

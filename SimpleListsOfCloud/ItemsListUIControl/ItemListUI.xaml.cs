@@ -141,7 +141,7 @@ namespace SimpleListsOfCloud
 
         public void FillList(ListItem items)
         {
-            items.Sort();
+            //items.Sort();
             currItem = items;
             itemGrid.Children.Clear();
             foreach (var item in items.Items)
@@ -264,26 +264,26 @@ namespace SimpleListsOfCloud
             this.enableNativeScrolling(true);
             this.isManualScrollingEnabled = false;
             this.sortZIndex();
-            AnimationUtil.translateY((FrameworkElement)child, this.idxToPosition(this.indexOfItem(child)), 200, (Action<object, EventArgs>)null);
+            AnimationUtil.translateY((FrameworkElement)child, idxToPosition(indexOfItem(child)), 200, (Action<object, EventArgs>)null);
             child.onReorderCompleted();
         }
 
         public void onReorderDelta(ItemUI child, double delta)
         {
-            this.updateDeltaItemPosition(child, delta);
+            updateDeltaItemPosition(child, delta);
             checkIfScrollingIsNeeded(child);
         }
 
         private void updateDeltaItemPosition(ItemUI item, double delta)
         {
-            int idx = this.indexOfItem(item);
-            this.moveDeltaItemWithinBounds(item, delta);
-            int num = this.positionToIdx(TransformUtil.getTranslateY((FrameworkElement)item));
+            int idx = indexOfItem(item);
+            moveDeltaItemWithinBounds(item, delta);
+            int num = positionToIdx(TransformUtil.getTranslateY((FrameworkElement)item));
             if (idx == num)
                 return;
             int index = idx - num < 0 ? idx + 1 : idx - 1;
-            AnimationUtil.translateY((FrameworkElement)itemGrid.Children[index], this.idxToPosition(idx), 200, (Action<object, EventArgs>)null);
-            this.swapItemsInList(item, (ItemUI)itemGrid.Children[index]);
+            AnimationUtil.translateY((FrameworkElement)itemGrid.Children[index], idxToPosition(idx), 200, (Action<object, EventArgs>)null);
+            swapItemsInList(item, (ItemUI)itemGrid.Children[index]);
         }
 
         private void checkIfScrollingIsNeeded(ItemUI item)
@@ -476,8 +476,14 @@ namespace SimpleListsOfCloud
 
         private void swapItemsInList(ItemUI a, ItemUI b)
         {
+            //return;
             int index1 = indexOfItem(a);
             int index2 = indexOfItem(b);
+            //itemGrid.Children.Insert(index1, b);
+            //itemGrid.Children.Remove(a);
+            //itemGrid.Children.Remove(b);
+            itemGrid.Children[index1] = new ItemUI();
+            itemGrid.Children[index2] = new ItemUI();
             itemGrid.Children[index1] = b;
             itemGrid.Children[index2] = a;
         }

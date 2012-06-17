@@ -1,0 +1,63 @@
+﻿<phone:PhoneApplicationPage 
+    x:Class="SimpleListsOfCloud.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:phone="clr-namespace:Microsoft.Phone.Controls;assembly=Microsoft.Phone"
+    xmlns:shell="clr-namespace:Microsoft.Phone.Shell;assembly=Microsoft.Phone"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"    
+    xmlns:toolkit="clr-namespace:Microsoft.Phone.Controls;assembly=Microsoft.Phone.Controls.Toolkit"
+    xmlns:local="clr-namespace:SimpleListsOfCloud"
+    mc:Ignorable="d" d:DesignWidth="480" d:DesignHeight="728"
+    FontFamily="{StaticResource PhoneFontFamilyNormal}"
+    FontSize="{StaticResource PhoneFontSizeNormal}"
+    Foreground="Black"
+    SupportedOrientations="Portrait" Orientation="Portrait"
+    shell:SystemTray.IsVisible="False" Loaded="PhoneApplicationPage_Loaded">
+
+    <phone:PhoneApplicationPage.Resources>
+
+    </phone:PhoneApplicationPage.Resources>
+    <!--LayoutRoot представляет корневую сетку, где размещается все содержимое страницы-->
+    <Grid x:Name="LayoutRoot" Background="White">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+       
+        <StackPanel Orientation="Vertical" x:Name="TitlePanel" Grid.Row="0" Margin="12,17,0,28">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock x:Name="txtLoginResult" Text="Signed out" 
+                           Style="{StaticResource PhoneTextSmallStyle}"
+                           Foreground="Black"/>
+                <TextBlock x:Name="txtWelcome" Text="" Margin="0" 
+                           Style="{StaticResource PhoneTextSmallStyle}"
+                           Foreground="Black"/>
+            </StackPanel>
+            <Rectangle Height="2" Stroke="Black" Opacity="0.5" Margin="0,0,12,0" />
+        </StackPanel>
+
+        
+
+        <Grid x:Name="ContentPanel" Grid.Row="1" Margin="0,0,12,0">
+            
+            <local:ItemListUI x:Name="tasklist_listbox" Width="480"/>
+            
+
+        </Grid>
+
+    </Grid>
+   
+
+    <phone:PhoneApplicationPage.ApplicationBar>
+        <shell:ApplicationBar IsVisible="True" IsMenuEnabled="True" BackgroundColor="#FFF2F2F2" ForegroundColor="Black">
+            <shell:ApplicationBarIconButton IconUri="/Images/appbar.upload.png" Text="Back" Click="ApplicationBarIconButton_Click_1" />
+            <shell:ApplicationBarIconButton IconUri="/Images/appbar.refresh.1.png" Text="SkyDrive" Click="ApplicationBarIconButton_Click" x:Name="SyncButton" />
+            <shell:ApplicationBar.MenuItems>
+                <shell:ApplicationBarMenuItem Text="Settings"/>
+            </shell:ApplicationBar.MenuItems>
+        </shell:ApplicationBar>
+    </phone:PhoneApplicationPage.ApplicationBar>
+
+</phone:PhoneApplicationPage>

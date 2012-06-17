@@ -1,0 +1,51 @@
+﻿<UserControl x:Class="SimpleListsOfCloud.ItemUI"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:toolkit="clr-namespace:Microsoft.Phone.Controls;assembly=Microsoft.Phone.Controls.Toolkit" 
+    mc:Ignorable="d"
+    FontFamily="{StaticResource PhoneFontFamilyNormal}"
+    FontSize="{StaticResource PhoneFontSizeNormal}"
+    Foreground="Black"
+    d:DesignWidth="456" d:DesignHeight="50" Height="100" HorizontalAlignment="Center" VerticalAlignment="Top" RenderTransformOrigin="0,0" Width="480">
+
+    <UserControl.RenderTransform>
+        <CompositeTransform />
+    </UserControl.RenderTransform>
+    <UserControl.Projection>
+        <PlaneProjection CenterOfRotationX="0" CenterOfRotationY="1"/>
+    </UserControl.Projection>
+
+    <Grid x:Name="LayoutRoot" Background="Transparent" Width="450" HorizontalAlignment="Center">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="5*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            
+            <toolkit:GestureService.GestureListener>
+                <toolkit:GestureListener GestureBegin="onDragStarted" DragDelta="onDragDelta" GestureCompleted="onDragCompleted" />
+            </toolkit:GestureService.GestureListener>
+            <Grid.RenderTransform>
+                <CompositeTransform />
+            </Grid.RenderTransform>
+
+
+            <Border BorderThickness="2" BorderBrush="#59000000" Margin="0,5,1,5" CornerRadius="5"
+                            Grid.Column="0">
+                <TextBox x:Name="text" Text="text" FontSize="26" TextAlignment="Left" VerticalAlignment="Center" 
+                         HorizontalAlignment="Stretch" Padding="15,1,0,0" Foreground="Black" 
+                         CaretBrush="Black" Background="{x:Null}" BorderBrush="{x:Null}"
+                         Tap="onTapTextBox"
+                         GotFocus="onGotFocusText" LostFocus="onLostFocusText" HorizontalScrollBarVisibility="Disabled" IsHitTestVisible="False" 
+                         TextChanged="onTextChanged" InputScope="Text" KeyUp="onKeyUp"/>
+                
+            </Border>
+            <Border BorderThickness="2" BorderBrush="#59000000" Margin="1,5,10,5" CornerRadius="5"
+                            Grid.Column="1">
+                <TextBlock x:Name="counter" Text="0" FontSize="26" TextAlignment="Center" VerticalAlignment="Center" 
+                           HorizontalAlignment="Stretch" Foreground="Black" />
+            </Border>
+    </Grid>
+    
+</UserControl>

@@ -235,6 +235,11 @@ namespace SimpleListsOfCloud
         {
             tasklist_listbox.FillList(App.Current.ListItems.StartNode);
         }
+
+        private void ApplicationBarMenuItem_Click(object sender, EventArgs e)
+        {
+            App.Current.ListItems.StartNode.Sort();
+        }
         
     }
 }

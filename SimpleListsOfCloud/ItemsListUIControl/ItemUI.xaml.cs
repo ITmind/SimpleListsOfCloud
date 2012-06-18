@@ -21,6 +21,7 @@ namespace SimpleListsOfCloud
         private bool reorderStarted;
         private double dragStartX;
         private bool draggingToDelete;
+        private bool draggingToComplete;
         private ItemListUI listbox;
         bool textFocused = false;
 
@@ -56,19 +57,28 @@ namespace SimpleListsOfCloud
         public void setText(string str)
         {
             text.Text = str;
-            if (this.Tag != null)
-            {
-                ((ListItem)this.Tag).Name = str;
-            }
+            //if (this.Tag != null)
+            //{
+            //    if(listbox.currItem.FindItem(str)!=null)
+            //    {
+            //        //уже есть
+
+            //    }
+            //    //else
+            //    //{
+            //    //    ((ListItem)this.Tag).Name = str;    
+            //    //}
+                
+            //}
             this.Dispatcher.BeginInvoke((Action)(() => onTextChanged((object)null, (TextChangedEventArgs)null)));
         }
 
         private void onTextChanged(object sender, TextChangedEventArgs e)
         {
-            if (this.Tag != null)
-            {
-                ((ListItem)this.Tag).Name = text.Text;
-            }
+            //if (this.Tag != null)
+            //{
+            //    ((ListItem)this.Tag).Name = text.Text;
+            //}
             text.UpdateLayout();
         }
 
@@ -111,6 +121,30 @@ namespace SimpleListsOfCloud
                     e.Handled = true;
                 this.listbox.onReorderCompleted(this);
             }
+            else if (draggingToComplete)
+            {
+                if (e != null)
+                    e.Handled = true;
+                draggingToComplete = false;
+                //listbox.onDraggingToCompleteEnded();
+                listbox.onDraggingToDeleteEnded();
+                double translateX = TransformUtil.getTranslateX((FrameworkElement)LayoutRoot);
+                if (translateX < 150.0)
+                {
+                    AnimationUtil.translateX((FrameworkElement)LayoutRoot, translateX, 0.0, 100, (Action<object, EventArgs>)null);
+                }
+                else
+                {
+                    //setCompletingLook();
+                    AnimationUtil.translateX((FrameworkElement)LayoutRoot, translateX, 0.0, 100, (Action<object, EventArgs>)((s, ev) =>
+                    {
+                        if ((Tag as ListItem).Mark)
+                            listbox.onUncompleteItem(this);
+                        else
+                            listbox.onCompleteItem(this);
+                    }));
+                }
+            }
             else
             {
                 if (!this.draggingToDelete)
@@ -121,7 +155,7 @@ namespace SimpleListsOfCloud
                 DeleteImage.Visibility = System.Windows.Visibility.Collapsed;
                 itemBorder.Width = 440;
 
-                this.listbox.onDraggingToDeleteEnded();
+                listbox.onDraggingToDeleteEnded();
                 double translateX = TransformUtil.getTranslateX((FrameworkElement)LayoutRoot);
                 if (translateX > -150.0 || MessageBox.Show("Delete list", "Are you sure?", MessageBoxButton.OKCancel) == MessageBoxResult.Cancel)
                 {
@@ -139,23 +173,35 @@ namespace SimpleListsOfCloud
             if (this.disableGesture)
                 return;
             bool flag = e.HorizontalChange < 0.0 && e.Direction == Orientation.Horizontal;
+            bool flag2 = e.HorizontalChange > 0.0 && e.Direction == Orientation.Horizontal;
+
             if (this.reorderStarted)
             {
                 e.Handled = true;
-                this.listbox.onReorderDelta(this, e.VerticalChange);
+                listbox.onReorderDelta(this, e.VerticalChange);
             }
-            else if (!draggingToDelete && flag)
+            else if (!draggingToDelete && flag && !draggingToComplete)
             {
                 e.Handled = true;
-                this.draggingToDelete = true;
-                this.listbox.onDraggingToDelete();
+                draggingToDelete = true;
+                listbox.onDraggingToDelete();
                 TransformUtil.addTranslateDelta((FrameworkElement)LayoutRoot, e.HorizontalChange, 0.0);
                 DeleteImage.Visibility = System.Windows.Visibility.Visible;
                 itemBorder.Width = 440 - DeleteImage.ActualWidth;
             }
+            else if (!draggingToDelete && flag2 && !draggingToComplete)
+            {
+                e.Handled = true;
+                draggingToComplete = true;
+                //listbox.onDraggingToComplete(this);
+                listbox.onDraggingToDelete();
+                TransformUtil.addTranslateDelta((FrameworkElement)LayoutRoot, e.HorizontalChange, 0.0);
+                //this.completeTxtPanel.Visibility = Visibility.Visible;
+                //this.completeTxt.Text = this.isCompleted ? "Uncomplete" : "Complete";
+            }
             else
             {
-                if (!draggingToDelete)
+                if (!draggingToDelete && !draggingToComplete)
                     return;
                 e.Handled = true;
                 TransformUtil.addTranslateDelta((FrameworkElement)LayoutRoot, e.HorizontalChange, 0.0);
@@ -179,7 +225,7 @@ namespace SimpleListsOfCloud
         {
             if (e.Key != Key.Enter)
                 return;
-            this.listbox.Focus();
+            listbox.Focus();
         }
 
         private void Border_Tap(object sender, System.Windows.Input.GestureEventArgs e)
@@ -187,7 +233,9 @@ namespace SimpleListsOfCloud
             if (!textFocused)
             {
                 //Debug.WriteLine("go");
-                if (Tag != null && (Tag as ListItem).Items.Count > 0)
+                //if (Tag != null && (Tag as ListItem).Items.Count > 0)
+                var parrent = ListItem.FindParrent(App.Current.ListItems.StartNode, Tag as ListItem);
+                if (Tag != null && parrent == App.Current.ListItems.StartNode)
                 {
                     listbox.FillList((Tag as ListItem));
                 }
@@ -203,6 +251,18 @@ namespace SimpleListsOfCloud
         private void text_LostFocus(object sender, RoutedEventArgs e)
         {
             textFocused = false;
+            if (this.Tag != null)
+            {
+                if (listbox.currItem.FindItem(text.Text) != null)
+                {
+                    MessageBox.Show(String.Format("Item {0} is alredy present in list. Select another name.", text.Text));
+                    text.Focus();
+                }
+                else
+                {
+                    ((ListItem)this.Tag).Name = text.Text;
+                }
+            }
         }
 
         private void text_Tap(object sender, System.Windows.Input.GestureEventArgs e)

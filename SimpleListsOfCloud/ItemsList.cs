@@ -20,20 +20,20 @@ namespace SimpleListsOfCloud
 {
     public class ItemsList
     {
-        private int downloadCounter = 0;
-        private int uploadCounter = 0;
+        private int _downloadCounter = 0;
+        private int _uploadCounter = 0;
         
-        private ListItem startNode;
+        private ListItem _startNode;
         public event EventHandler GetDataComplited;
         public ListItem StartNode
         {
             get
             {
-                return startNode;
+                return _startNode;
             }
             set
             {
-                startNode = value;
+                _startNode = value;
             }
         }
 
@@ -79,20 +79,22 @@ namespace SimpleListsOfCloud
 
         private void UploadItems(ListItem item)
         {
-            LiveConnectClient client = new LiveConnectClient(App.Current.LiveSession);            
+            var client = new LiveConnectClient(App.Current.LiveSession);            
             client.UploadCompleted += new EventHandler<LiveOperationCompletedEventArgs>(client_UploadCompleted);
 
-            MemoryStream newFile = new MemoryStream();
-            StreamWriter writer = new StreamWriter(newFile);
+            var newFile = new MemoryStream();
+            var writer = new StreamWriter(newFile);
             foreach (var listItem in item.Items)
             {
                 if (listItem.Deleted) continue;
                 writer.WriteLine(listItem.Name);
             }
             writer.Flush();
+            newFile.Flush();
+            newFile.Seek(0, SeekOrigin.Begin);
             //writer.Close();
 
-            client.UploadAsync(App.Current.SkyDriveFolders.FolderID, item.Name + ".txt", newFile);
+            client.UploadAsync(App.Current.SkyDriveFolders.FolderID, item.Name + ".txt",true, newFile,null);
         }
 
         private void UploadSync(IList<object> files)
@@ -111,15 +113,15 @@ namespace SimpleListsOfCloud
                 }
                 string name = filename.Substring(0, filename.Length - 4);
                 ListItem newGroup = FindGroup(name);
-                DateTime update_time = Convert.ToDateTime(content["updated_time"]);
+                DateTime updateTime = Convert.ToDateTime(content["updated_time"]);
                 if (newGroup != null && !newGroup.Deleted)
                 {
                     syncItems.Add(name);
                     //проверим время модификации
-                    if (newGroup.ModifyTime >= update_time)
+                    if (newGroup.ModifyTime >= updateTime)
                     {
                         //делаем загрузку в облако
-                        uploadCounter++;
+                        _uploadCounter++;
                         UploadItems(newGroup);
                         newGroup.Sync = true;
                         //continue;
@@ -140,7 +142,7 @@ namespace SimpleListsOfCloud
             {
                 if (!item.Sync && !item.Deleted && !syncItems.Contains(item.Name))
                 {
-                    uploadCounter++;
+                    _uploadCounter++;
                     UploadItems(item);
                 }
             }
@@ -153,8 +155,8 @@ namespace SimpleListsOfCloud
 
         void client_UploadCompleted(object sender, LiveOperationCompletedEventArgs e)
         {
-            uploadCounter--;
-            if (uploadCounter <= 0)
+            _uploadCounter--;
+            if (_uploadCounter <= 0)
             {
                 OnUploadComplited(EventArgs.Empty);
             }           
@@ -174,18 +176,18 @@ namespace SimpleListsOfCloud
                 }
                 string name = filename.Substring(0, filename.Length - 4);
                 ListItem newGroup = FindGroup(name);
-                DateTime update_time = Convert.ToDateTime(content["updated_time"]);
+                DateTime updateTime = Convert.ToDateTime(content["updated_time"]);
                 if (newGroup != null && !newGroup.Sync)
                 {
                     //проверим время модификации
 
-                    if (newGroup.ModifyTime >= update_time)
+                    if (newGroup.ModifyTime >= updateTime)
                     {
                         newGroup.Sync = false;                        
                     }
                     else
                     {
-                        downloadCounter++;
+                        _downloadCounter++;
                         client.DownloadAsync(String.Format("{0}/content", (string)content["id"]), newGroup);
                     }
                 }
@@ -197,9 +199,9 @@ namespace SimpleListsOfCloud
                 {
                     newGroup = new ListItem();
                     newGroup.Name = name;
-                    newGroup.ModifyTime = update_time;
+                    newGroup.ModifyTime = updateTime;
                     StartNode.Items.Add(newGroup);
-                    downloadCounter++;
+                    _downloadCounter++;
                     client.DownloadAsync(String.Format("{0}/content", (string)content["id"]), newGroup);
                 }
 
@@ -224,7 +226,7 @@ namespace SimpleListsOfCloud
                 if (!UploadComplite)
                 {
                     UploadSync(files);
-                    if (uploadCounter <= 0)
+                    if (_uploadCounter <= 0)
                     {
                         OnUploadComplited(EventArgs.Empty);
                     }
@@ -232,7 +234,7 @@ namespace SimpleListsOfCloud
                 else if (!DownloadComplite)
                 {
                     DownloadSync(files);
-                    if (downloadCounter <= 0)
+                    if (_downloadCounter <= 0)
                     {
                         //Save();
                         OnGetDataComplited(EventArgs.Empty);
@@ -249,28 +251,28 @@ namespace SimpleListsOfCloud
         {
             if (e.Result != null)
             {
-                ListItem newGroup = (ListItem)e.UserState;
-                newGroup.Items.Clear();
-                StreamReader sr = new StreamReader(e.Result);
-                string Text = sr.ReadToEnd();                
+                var parrentItem = (ListItem)e.UserState;
+                parrentItem.Items.Clear();
+                var sr = new StreamReader(e.Result);
+                string text = sr.ReadToEnd();                
                 e.Result.Close();
-                newGroup.Items = new ObservableCollection<ListItem>();             
+                parrentItem.Items = new ObservableCollection<ListItem>();             
 
-                string[] itemsArray = Text.Split(Environment.NewLine.ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+                string[] itemsArray = text.Split(Environment.NewLine.ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
                 foreach (var task in itemsArray)
                 {
-                    newGroup.Items.Add(new ListItem() { Name = task, Sync = true });
+                    parrentItem.Add(task, true);
                 }
-                newGroup.Sync = true;
-                syncItems.Add(newGroup.Name);                
+                parrentItem.Sync = true;
+                syncItems.Add(parrentItem.Name);                
             }
             else
             {
                 //infoTextBlock.Text = "Error downloading image: " + e.Error.ToString();
             }
 
-            downloadCounter--;
-            if (downloadCounter <= 0)
+            _downloadCounter--;
+            if (_downloadCounter <= 0)
             {
                 //Save();
                 OnGetDataComplited(EventArgs.Empty);
@@ -302,7 +304,7 @@ namespace SimpleListsOfCloud
             }
             else
             {
-                if (!iss.TryGetValue("ItemsList", out startNode))
+                if (!iss.TryGetValue("ItemsList", out _startNode))
                 {
                     StartNode = new ListItem();
                 }
@@ -339,11 +341,11 @@ namespace SimpleListsOfCloud
         void DeleteSyncItems(ObservableCollection<ListItem> list)
         {
             if (list == null || list.Count == 0) return;
-            List<ListItem> itemsForDel = new List<ListItem>();
+            var itemsForDel = new List<ListItem>();
 
             foreach (var item in list)
             {
-                var findedItems = from itemForDelete in StartNode.Items
+                var findedItems = from itemForDelete in item.Items
                                   where itemForDelete.Sync && itemForDelete.Deleted
                                   select itemForDelete;
 
@@ -391,20 +393,22 @@ namespace SimpleListsOfCloud
 
     public class ListItem
     {
-        private bool sync;
-        private bool deleted;
+        private bool _sync;
+        private bool _deleted;
+        private bool _mark;
 
         public string Name { get; set; }
         public DateTime ModifyTime { get; set; }
+        //public ListItem Parent { get; set; }
         public bool Sync
         {
             get
             {
-                return sync;
+                return _sync;
             }
             set
             {
-                sync = value;
+                _sync = value;
                 if (Items != null && Items.Count > 0)
                 {
                     foreach (var item in Items)
@@ -418,16 +422,34 @@ namespace SimpleListsOfCloud
         {
             get
             {
-                return deleted;
+                return _deleted;
             }
             set
             {
-                deleted = value;
+                _deleted = value;
                 if (Items != null && Items.Count > 0)
                 {
                     foreach (var item in Items)
                     {
                         item.Deleted = value;
+                    }
+                }
+            }
+        }
+        public bool Mark
+        {
+            get
+            {
+                return _mark;
+            }
+            set
+            {
+                _mark = value;
+                if (Items != null && Items.Count > 0)
+                {
+                    foreach (var item in Items)
+                    {
+                        item.Mark = value;
                     }
                 }
             }
@@ -543,16 +565,23 @@ namespace SimpleListsOfCloud
             return Add(name);
         }
 
-        public ListItem Add(string name)
+        public ListItem Add(string name, bool isSync = false)
         {
-            ListItem newItem = new ListItem();
-            newItem.Name = name;
-            Items.Insert(0, newItem);
-            OnAddItem(new ListItemEventArgs(newItem));
-            return newItem;
+            if (FindItem(name) == null)
+            {
+                var newItem = new ListItem {Name = name, Sync = isSync};
+                //newItem.Parent = this;
+                Items.Insert(0, newItem);
+                OnAddItem(new ListItemEventArgs(newItem));
+                return newItem;
+            }
+            else
+            {
+                return null;
+            }
         }
 
-        ListItem FindItem(string name)
+        public ListItem FindItem(string name)
         {
             var findedGroup = from item in Items
                               where item.Name.Equals(name)
@@ -573,7 +602,26 @@ namespace SimpleListsOfCloud
         public void Sort()
         {
             Items = new ObservableCollection<ListItem>(Items.OrderByDescending(x => x.Items.Count).ThenBy(x => x.Name).ToList());
+            foreach (var item in Items)
+            {
+                item.Sort();
+            }
             //Items = new ObservableCollection<ListItem>(Items.OrderBy(x => x.Name).ToList());
+        }
+
+        public static ListItem FindParrent(ListItem startNode, ListItem findNode)
+        {
+            var result = startNode;
+            if(!startNode.Items.Contains(findNode))
+            {                
+                foreach (var item in startNode.Items)
+                {
+                    result = ListItem.FindParrent(item, findNode); 
+                    if(result!=null) break;
+                }                
+            }
+
+            return result;
         }
 
     }

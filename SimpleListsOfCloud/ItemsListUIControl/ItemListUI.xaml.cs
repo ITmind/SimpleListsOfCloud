@@ -161,10 +161,18 @@ namespace SimpleListsOfCloud
 
         public ItemUI addItem(ListItem data)
         {
-            ItemUI listBoxItem = new ItemUI(this);
+            var listBoxItem = new ItemUI(this);
             listBoxItem.Tag = (object)data;
             listBoxItem.setText(data.Name);
             itemGrid.Children.Add((UIElement)listBoxItem);
+            if (data.Mark)
+            {
+                listBoxItem.markComplite.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                listBoxItem.markComplite.Visibility = Visibility.Collapsed;
+            }
             itemHeight = listBoxItem.Height;
             updateItemGridHeight();
             moveItemToIdxPosition(listBoxItem, indexOfItem(listBoxItem));
@@ -486,6 +494,21 @@ namespace SimpleListsOfCloud
             itemGrid.Children[index2] = new ItemUI();
             itemGrid.Children[index1] = b;
             itemGrid.Children[index2] = a;
+        }
+
+        public void onUncompleteItem(ItemUI item)
+        {
+            (item.Tag as ListItem).Mark = false;
+            item.markComplite.Visibility = Visibility.Collapsed;
+        }
+
+        public void onCompleteItem(ItemUI item)
+        {
+            if (item.Tag != null)
+            {
+                (item.Tag as ListItem).Mark = true;
+                item.markComplite.Visibility = Visibility.Visible;
+            }
         }
 
     }

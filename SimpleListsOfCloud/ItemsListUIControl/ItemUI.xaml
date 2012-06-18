@@ -8,7 +8,7 @@
     FontFamily="{StaticResource PhoneFontFamilyNormal}"
     FontSize="{StaticResource PhoneFontSizeNormal}"
     Foreground="Black"
-    d:DesignWidth="456" d:DesignHeight="50" Height="100" HorizontalAlignment="Center" VerticalAlignment="Top" RenderTransformOrigin="0,0" Width="480">
+    d:DesignWidth="456" d:DesignHeight="50" Height="100" HorizontalAlignment="Center" VerticalAlignment="Top" RenderTransformOrigin="0,0" Width="480" ManipulationCompleted="onManipulationCompleted">
 
     <UserControl.RenderTransform>
         <CompositeTransform />
@@ -141,6 +141,7 @@
             </Border>
             <Image Name="DeleteImage" Source="/SimpleListsOfCloud;component/Images/appbar.delete.png" Stretch="None" />
         </StackPanel>
+        <Rectangle Name="markComplite" VerticalAlignment="Center" Fill="Black" Height="2" Visibility="Collapsed" />
     </Grid>
 
 </UserControl>

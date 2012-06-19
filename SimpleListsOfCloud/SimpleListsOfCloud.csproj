@@ -58,6 +58,7 @@
       <HintPath>..\packages\SilverlightToolkitWP.4.2011.12.14\lib\sl4-windowsphone71\Microsoft.Phone.Controls.Toolkit.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Phone.Interop" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Windows" />
     <Reference Include="system" />
     <Reference Include="System.Core" />
@@ -84,6 +85,7 @@
     <Compile Include="SkyDriveFolders.cs" />
     <Compile Include="Utils\AnimationUtil.cs" />
     <Compile Include="Utils\CommonUtil.cs" />
+    <Compile Include="Utils\HexColor.cs" />
     <Compile Include="Utils\TransformUtil.cs" />
     <Compile Include="Utils\UiUtil.cs" />
   </ItemGroup>

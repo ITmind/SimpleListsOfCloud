@@ -35,7 +35,8 @@ namespace SimpleListsOfCloud
         private bool isDraggingListBox;
         private bool disableTopLevelGesture;
         private ItemUI newItem;
-        public ListItem currItem; 
+        public ListItem currItem;
+        private int minimizedCount = 0;
 
 
 
@@ -75,6 +76,7 @@ namespace SimpleListsOfCloud
                 TransformUtil.setScaleX((FrameworkElement)newItem, 1.0);
                 TransformUtil.setTranslateX((FrameworkElement)newItem, 0.0);
                 newItem.Tag = currItem.Add();
+                newItem.Update();
                 //sortZIndex();
                 newItem.setText("");
                 newItem.text.Focus();
@@ -142,13 +144,21 @@ namespace SimpleListsOfCloud
         public void FillList(ListItem items)
         {
             //items.Sort();
+            items.UpdateViews();
             currItem = items;
+            minimizedTaskList(); 
+        }
+
+        void fill()
+        {
             itemGrid.Children.Clear();
-            foreach (var item in items.Items)
+            foreach (var item in currItem.Items)
             {
+                if(item.Deleted) continue;
                 addItem(item);
             }
             UpdateColor();
+            maximizeTaskList();
         }
 
         public void UpdateColor()
@@ -165,6 +175,8 @@ namespace SimpleListsOfCloud
             listBoxItem.Tag = (object)data;
             listBoxItem.setText(data.Name);
             itemGrid.Children.Add((UIElement)listBoxItem);
+            TransformUtil.setTranslateY((FrameworkElement)listBoxItem, 0);
+
             if (data.Mark)
             {
                 listBoxItem.markComplite.Visibility = Visibility.Visible;
@@ -175,7 +187,7 @@ namespace SimpleListsOfCloud
             }
             itemHeight = listBoxItem.Height;
             updateItemGridHeight();
-            moveItemToIdxPosition(listBoxItem, indexOfItem(listBoxItem));
+            //moveItemToIdxPosition(listBoxItem, indexOfItem(listBoxItem));
             sortZIndex();
             return listBoxItem;
         }
@@ -194,66 +206,40 @@ namespace SimpleListsOfCloud
             sortZIndex();
             return listBoxItem;
         }
+            
 
-        public void cancelMinimizingTaskList()
+        public void minimizedTaskList()
         {
-            AnimationUtil.translateY((FrameworkElement)maximizedTaskList, -itemHeight, CommonUtil.calcAnimateYTime((FrameworkElement)maximizedTaskList, -itemHeight, 0.7), (Action<object, EventArgs>)null);
+            minimizedCount = itemGrid.Children.Count;
+            if (minimizedCount == 0)
+            {
+                fill();
+            }
+            else
+            {
+
+                AnimationUtil.opacity((FrameworkElement) itemGrid, 0.0, 300, (Action<object, EventArgs>) null);
+
+                for (int idx = 0; idx < itemGrid.Children.Count; ++idx)
+                    AnimationUtil.translateY((FrameworkElement) itemGrid.Children[idx], 0, 200, CallbackMinimized);
+            }
         }
 
-        public void minimizingTaskList(double topPosition, double pivotPosition, double ratio)
+        private void CallbackMinimized(object o, EventArgs eventArgs)
         {
-            topPosition -= this.itemHeight;
-            double num = pivotPosition - topPosition;
-            TransformUtil.setTranslateY((FrameworkElement)this.maximizedTaskList, topPosition + ratio * num);
+            minimizedCount--;
+            if (minimizedCount <= 0)
+            {
+                fill();
+            }
         }
 
-        public void minimizedTaskList(List<ItemUI> taskList)
+        public void maximizeTaskList()
         {
-            //this.task_listbox.IsHitTestVisible = false;
-            //AnimationUtil.opacity((FrameworkElement)MainPage.self.bkgrdImg, 0.0, 300, (Action<object, EventArgs>)((s, e) => MainPage.self.bkgrdImg.Source = (ImageSource)null));
+            AnimationUtil.opacity((FrameworkElement)itemGrid, 1.0, 300, (Action<object, EventArgs>)null);
             //this.updateList(taskList);
-            //for (int idx = 0; idx < this.itemList.Count; ++idx)
-            //    AnimationUtil.translateY((FrameworkElement)this.itemList[idx], this.idxToPosition(idx), 200, (Action<object, EventArgs>)null);
-            //this.IsHitTestVisible = true;
-            //this.maximizedTaskList = (ItemUI)null;
-        }
-
-        public void maximizeTaskList(ItemUI item)
-        {
-            //this.IsHitTestVisible = false;
-            //this.maximizedTaskList = item;
-            //Point offset = item.TransformToVisual((UIElement)this).Transform(new Point(0.0, 0.0));
-            //TaskListData listData = item.Tag as TaskListData;
-            //this.task_listbox.colorPivot = ColourUtil.hexStringToColor(listData.colour);
-            //this.task_listbox.opacityValue = listData.opacity;
-            //this.task_listbox.imgFilename = listData.imgFilename;
-            //this.task_listbox.isColourBkgrd = listData.isColourBkgrd;
-            //this.task_listbox.isUsingGradient = listData.isUsingGradient;
-            //this.task_listbox.lastModified = listData.lastModified;
-            //AnimationUtil.zoom((FrameworkElement)item, -600.0, 100, (Action<object, EventArgs>)((s, ev) =>
-            //{
-            //    foreach (TaskData item_0 in listData.taskDataList)
-            //        this.task_listbox.addItem(item_0);
-            //    this.task_listbox.zoomBack(offset.Y);
-            //    TimerUtil.Perform((Action)(() =>
-            //    {
-            //        AnimationUtil.translateY((FrameworkElement)item, -this.itemHeight, 200, (Action<object, EventArgs>)null);
-            //        AnimationUtil.zoom((FrameworkElement)item, 0.0, 100, (Action<object, EventArgs>)null);
-            //        this.task_listbox.updateInfoTxt();
-            //        this.task_listbox.zoomFront();
-            //        this.task_listbox.IsHitTestVisible = true;
-            //    }), 0);
-            //}));
-            //int num = this.indexOfItem(item);
-            //for (int index = 0; index < this.itemList.Count; ++index)
-            //{
-            //    if (index < num)
-            //        AnimationUtil.translateY((FrameworkElement)this.itemList[index], -this.itemHeight, CommonUtil.calcAnimateYTime((FrameworkElement)this.itemList[index], -this.itemHeight), (Action<object, EventArgs>)null);
-            //    else if (index > num)
-            //        AnimationUtil.translateY((FrameworkElement)this.itemList[index], Math.Max(this.itemGrid.ActualHeight, 800.0), CommonUtil.calcAnimateYTime((FrameworkElement)this.itemList[index], Math.Max(this.itemGrid.ActualHeight, 800.0)), (Action<object, EventArgs>)null);
-            //}
-            //double v = this.scrollViewer.VerticalOffset;
-            //this.Dispatcher.BeginInvoke((Action)(() => this.scrollViewer.ScrollToVerticalOffset(v)));
+            for (int idx = 0; idx < itemGrid.Children.Count; ++idx)
+                AnimationUtil.translateY((FrameworkElement)itemGrid.Children[idx], idxToPosition(idx), 200, (Action<object, EventArgs>)null);
         }
 
         public void onReorderStarted(ItemUI child)
@@ -332,7 +318,7 @@ namespace SimpleListsOfCloud
 
         public void onDeleteItem(ItemUI item)
         {
-            (item.Tag as ListItem).Deleted = true;
+            ((ListItem) item.Tag).SetDeleted(true);
             int num = indexOfItem(item);
             itemGrid.Children.Remove(item);            
             updateItemGridHeight();
@@ -350,58 +336,9 @@ namespace SimpleListsOfCloud
 
         public void onCompletedEditText(ItemUI item)
         {
-            ListItem taskListData = item.Tag as ListItem;
-            //if (taskListData.Name != item.text.Text)
-            //{
-            //    taskListData.title = item.text.Text;
-            //    taskListData.lastModified = DateTimeUtil.getCurrUtcDateTime();
-
-            //}
             disableTopLevelGesture = false;
             enableNativeScrolling(true);
             enableAllChildrenGesture(true);
-        }
-
-        public void updateList(List<ItemUI> itemList)
-        {
-        //    TaskListData taskListData = this.maximizedTaskList.Tag as TaskListData;
-        //    taskListData.taskDataList.Clear();
-        //    int num = 0;
-        //    foreach (Task_ListBoxItem taskListBoxItem in itemList)
-        //    {
-        //        DateTime dateTime1 = taskListBoxItem.datePicker.Value.Value;
-        //        DateTime dateTime2 = taskListBoxItem.timePicker.Value.Value;
-        //        DateTime beginTime = new DateTime(dateTime1.Year, dateTime1.Month, dateTime1.Day, dateTime2.Hour, dateTime2.Minute, 0);
-        //        if (taskListBoxItem.reminderChkbox.IsChecked.Value)
-        //        {
-        //            AlarmReminderUtil.deleteReminder(taskListBoxItem.reminderGuid);
-        //            taskListBoxItem.reminderGuid = Guid.NewGuid().ToString();
-        //            AlarmReminderUtil.createReminder(taskListBoxItem.reminderGuid, "Reminder", taskListBoxItem.text.Text, beginTime, beginTime.AddMinutes(1.0), RecurrenceInterval.None, (Uri)null);
-        //        }
-        //        beginTime = beginTime.ToUniversalTime();
-        //        taskListData.taskDataList.Add(new TaskData()
-        //        {
-        //            content = taskListBoxItem.text.Text,
-        //            isCompleted = taskListBoxItem.isCompleted,
-        //            lastModified = taskListBoxItem.lastModified,
-        //            gTaskID = taskListBoxItem.gTaskID,
-        //            reminder = beginTime,
-        //            reminderEnabled = taskListBoxItem.reminderChkbox.IsChecked.Value,
-        //            reminderGuid = taskListBoxItem.reminderGuid
-        //        });
-        //        if (!taskListBoxItem.isCompleted)
-        //            ++num;
-        //        taskListBoxItem.lastModifiedDisplay.Text = taskListBoxItem.lastModified.ToString("M/d/yyyy hh:mm:ss tt");
-        //    }
-        //    this.maximizedTaskList.counter.Text = string.Concat((object)num);
-        //    taskListData.colour = this.task_listbox.colorPivot.ToString();
-        //    taskListData.opacity = this.task_listbox.opacityValue;
-        //    taskListData.imgFilename = this.task_listbox.imgFilename;
-        //    taskListData.isColourBkgrd = this.task_listbox.isColourBkgrd;
-        //    taskListData.isUsingGradient = this.task_listbox.isUsingGradient;
-        //    taskListData.lastModified = this.task_listbox.lastModified;
-        //    this.maximizedTaskList.lastModifiedDisplay.Text = this.task_listbox.lastModified.ToString("M/d/yyyy hh:mm:ss tt");
-        //    MainPage.self.updateLocalLastModified(this.task_listbox.lastModified);
         }
 
        
@@ -463,7 +400,7 @@ namespace SimpleListsOfCloud
 
         private void moveItemToIdxPosition(ItemUI item, int idx)
         {
-            TransformUtil.setTranslateY((FrameworkElement)item, this.idxToPosition(idx));
+            TransformUtil.setTranslateY((FrameworkElement)item, idxToPosition(idx));
         }
 
         private void moveDeltaItemWithinBounds(ItemUI item, double delta)
@@ -498,18 +435,17 @@ namespace SimpleListsOfCloud
 
         public void onUncompleteItem(ItemUI item)
         {
-            (item.Tag as ListItem).Mark = false;
-            item.markComplite.Visibility = Visibility.Collapsed;
+            ((ListItem) item.Tag).SetMark(false);
+            item.Update();
         }
 
         public void onCompleteItem(ItemUI item)
         {
             if (item.Tag != null)
             {
-                (item.Tag as ListItem).Mark = true;
-                item.markComplite.Visibility = Visibility.Visible;
+                ((ListItem) item.Tag).SetMark(true);
+                item.Update();
             }
         }
-
     }
 }

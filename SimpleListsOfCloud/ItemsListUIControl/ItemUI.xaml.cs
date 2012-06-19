@@ -25,6 +25,10 @@ namespace SimpleListsOfCloud
         private ItemListUI listbox;
         bool textFocused = false;
 
+        private Color _markColor = new HexColor("#E1E1E1");
+        private Color _empetyColor = new HexColor("#F0FFF0");
+        //private Color fillColor = new HexColor("#DCFFDC");
+
         public ItemUI()
         {
             InitializeComponent();
@@ -41,16 +45,33 @@ namespace SimpleListsOfCloud
         {
             if (this.Tag != null)
             {
-                int count = (Tag as ListItem).Items.Count;
-                Color curColor = (itemBorder.Background as SolidColorBrush).Color;
-                curColor.B = (byte)(226 - count * 10);
-                curColor.G = (byte)(226 - count * 10);
-                curColor.R = (byte)(226 - count * 10);
-                itemBorder.Background = new SolidColorBrush(curColor);
-                //if (count > 0)
-                //{
-                //    .A = 50;
-                //}
+                if (((ListItem) Tag).Mark)
+                {
+                    var count = ((ListItem)Tag).Items.Count;
+                    var curColor = new Color
+                    {
+                        B = (byte)(_markColor.B - count * 10),
+                        R = (byte)(_markColor.R - count * 10),
+                        G = (byte)(_markColor.G - count * 10),
+                        A = _markColor.A
+                    };
+
+                    itemBorder.Background = new SolidColorBrush(curColor);
+                    markComplite.Visibility = Visibility.Visible;  
+                }
+                else
+                {
+                    var count = ((ListItem)Tag).Items.Count;
+                    var curColor = new Color
+                                       {
+                                           B = (byte) (_empetyColor.B - count*30),
+                                           R = (byte) (_empetyColor.R - count*30),
+                                           G = _empetyColor.G,
+                                           A = _empetyColor.A
+                                       };
+                    itemBorder.Background = new SolidColorBrush(curColor);
+                    markComplite.Visibility = Visibility.Collapsed;
+                }
             }
         }
 
@@ -236,7 +257,7 @@ namespace SimpleListsOfCloud
                 //if (Tag != null && (Tag as ListItem).Items.Count > 0)
                 var parrent = ListItem.FindParrent(App.Current.ListItems.StartNode, Tag as ListItem);
                 if (Tag != null && parrent == App.Current.ListItems.StartNode)
-                {
+                {                    
                     listbox.FillList((Tag as ListItem));
                 }
             }

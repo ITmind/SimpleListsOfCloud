@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net;
+using System.Runtime.Serialization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
@@ -15,6 +16,7 @@ using System.IO;
 using System.Linq;
 using System.IO.IsolatedStorage;
 using Microsoft.Phone.Shell;
+using System.Xml.Serialization;
 
 namespace SimpleListsOfCloud
 {
@@ -22,7 +24,7 @@ namespace SimpleListsOfCloud
     {
         private int _downloadCounter = 0;
         private int _uploadCounter = 0;
-        
+
         private ListItem _startNode;
         public event EventHandler GetDataComplited;
         public ListItem StartNode
@@ -87,38 +89,38 @@ namespace SimpleListsOfCloud
             foreach (var listItem in item.Items)
             {
                 if (listItem.Deleted) continue;
-                writer.WriteLine(listItem.Name);
+                writer.WriteLine("{0}{1}",listItem.Mark?"-":"",listItem.Name);
             }
             writer.Flush();
             newFile.Flush();
             newFile.Seek(0, SeekOrigin.Begin);
             //writer.Close();
 
-            client.UploadAsync(App.Current.SkyDriveFolders.FolderID, item.Name + ".txt",true, newFile,null);
+            client.UploadAsync(App.Current.SkyDriveFolders.FolderID, item.Name + ".txt", true, newFile, item);
         }
 
-        private void UploadSync(IList<object> files)
+        private void UploadSync(IEnumerable<object> files)
         {
-            List<string> filesForDelete = new List<string>();
+            var filesForDelete = new List<string>();
             syncItems.Clear();
 
-            LiveConnectClient client = new LiveConnectClient(App.Current.LiveSession);
-            client.UploadCompleted += new EventHandler<LiveOperationCompletedEventArgs>(client_UploadCompleted);
+            var client = new LiveConnectClient(App.Current.LiveSession);
+            client.UploadCompleted += client_UploadCompleted;
             foreach (IDictionary<string, object> content in files)
             {
-                string filename = (string)content["name"];
+                var filename = (string)content["name"];
                 if (!filename.EndsWith(".txt"))
                 {
                     continue;
                 }
                 string name = filename.Substring(0, filename.Length - 4);
-                ListItem newGroup = FindGroup(name);
-                DateTime updateTime = Convert.ToDateTime(content["updated_time"]);
+                var newGroup = FindGroup(name);
+                var updateTime = Convert.ToDateTime(content["updated_time"]);
                 if (newGroup != null && !newGroup.Deleted)
                 {
                     syncItems.Add(name);
                     //проверим время модификации
-                    if (newGroup.ModifyTime >= updateTime)
+                    if (newGroup.ModifyTime > updateTime)
                     {
                         //делаем загрузку в облако
                         _uploadCounter++;
@@ -155,6 +157,7 @@ namespace SimpleListsOfCloud
 
         void client_UploadCompleted(object sender, LiveOperationCompletedEventArgs e)
         {
+            ((ListItem) e.UserState).ModifyTime = DateTime.Now;
             _uploadCounter--;
             if (_uploadCounter <= 0)
             {
@@ -162,10 +165,10 @@ namespace SimpleListsOfCloud
             }           
         }
 
-        private void DownloadSync(IList<object> files)
+        private void DownloadSync(IEnumerable<object> files)
         {
             syncItems.Clear();
-            LiveConnectClient client = new LiveConnectClient(App.Current.LiveSession);
+            var client = new LiveConnectClient(App.Current.LiveSession);
             client.DownloadCompleted += new EventHandler<LiveDownloadCompletedEventArgs>(OnDownloadCompleted);
             foreach (IDictionary<string, object> content in files)
             {
@@ -181,11 +184,11 @@ namespace SimpleListsOfCloud
                 {
                     //проверим время модификации
 
-                    if (newGroup.ModifyTime >= updateTime)
+                    if (newGroup.ModifyTime > updateTime)
                     {
                         newGroup.Sync = false;                        
                     }
-                    else
+                    else if (newGroup.ModifyTime < updateTime)
                     {
                         _downloadCounter++;
                         client.DownloadAsync(String.Format("{0}/content", (string)content["id"]), newGroup);
@@ -197,9 +200,7 @@ namespace SimpleListsOfCloud
                 }
                 else if (newGroup == null)
                 {
-                    newGroup = new ListItem();
-                    newGroup.Name = name;
-                    newGroup.ModifyTime = updateTime;
+                    newGroup = new ListItem {Name = name, ModifyTime = updateTime};
                     StartNode.Items.Add(newGroup);
                     _downloadCounter++;
                     client.DownloadAsync(String.Format("{0}/content", (string)content["id"]), newGroup);
@@ -225,6 +226,8 @@ namespace SimpleListsOfCloud
                 //сначала грузим все в облако
                 if (!UploadComplite)
                 {
+                    UpdateModifyTime();
+
                     UploadSync(files);
                     if (_uploadCounter <= 0)
                     {
@@ -259,11 +262,24 @@ namespace SimpleListsOfCloud
                 parrentItem.Items = new ObservableCollection<ListItem>();             
 
                 string[] itemsArray = text.Split(Environment.NewLine.ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+                bool isMark = true;
                 foreach (var task in itemsArray)
                 {
-                    parrentItem.Add(task, true);
+                    //if (task[0] == '-')
+                    var item = parrentItem.Add(task, true);
+                    if(item.Name[0]=='-')
+                    {
+                        item.Mark = true;
+                        item.Name = task.Substring(1);
+                    }
+                    else
+                    {
+                        isMark = false;
+                    }
+                    
                 }
                 parrentItem.Sync = true;
+                parrentItem.Mark = parrentItem.Items.Count>0 && isMark;
                 syncItems.Add(parrentItem.Name);                
             }
             else
@@ -335,54 +351,26 @@ namespace SimpleListsOfCloud
 
         public void DeleteSyncItems()
         {
-            DeleteSyncItems(StartNode.Items);
+            StartNode.DeleteSyncItems();
         }
 
-        void DeleteSyncItems(ObservableCollection<ListItem> list)
+        void UpdateModifyTime()
         {
-            if (list == null || list.Count == 0) return;
-            var itemsForDel = new List<ListItem>();
-
-            foreach (var item in list)
+            foreach (var item in StartNode.Items)
             {
-                var findedItems = from itemForDelete in item.Items
-                                  where itemForDelete.Sync && itemForDelete.Deleted
-                                  select itemForDelete;
-
-                foreach (var itemForDelete in findedItems.ToList())
+                foreach (var listItem in item.Items)
                 {
-                    //StartNode.Delete(itemForDelete);
-                    itemsForDel.Add((ListItem)itemForDelete);
+                    if(item.ModifyTime<listItem.ModifyTime)
+                    {
+                        item.ModifyTime = listItem.ModifyTime;
+                    }
+                    else if (item.ModifyTime > listItem.ModifyTime)
+                    {
+                        listItem.ModifyTime = item.ModifyTime;
+                    }
                 }
-
-                DeleteSyncItems(item.Items);
-            }
-
-            foreach (var item in itemsForDel)
-            {
-                StartNode.Delete(item);
             }
         }
-
-        void DeleteNotSyncItems(ObservableCollection<ListItem> list)
-        {
-            if (list == null || list.Count == 0) return;
-
-            foreach (var item in list)
-            {
-                var findedItems = from itemForDelete in StartNode.Items
-                                  where !itemForDelete.Sync
-                                  select itemForDelete;
-
-                foreach (var itemForDelete in findedItems)
-                {
-                    StartNode.Delete(itemForDelete);
-                }
-
-                DeleteNotSyncItems(item.Items);
-            }
-        }
-
     }
 
     public class ListItemEventArgs
@@ -393,82 +381,17 @@ namespace SimpleListsOfCloud
 
     public class ListItem
     {
-        private bool _sync;
-        private bool _deleted;
-        private bool _mark;
-
         public string Name { get; set; }
         public DateTime ModifyTime { get; set; }
-        //public ListItem Parent { get; set; }
-        public bool Sync
-        {
-            get
-            {
-                return _sync;
-            }
-            set
-            {
-                _sync = value;
-                if (Items != null && Items.Count > 0)
-                {
-                    foreach (var item in Items)
-                    {
-                        item.Sync = value;
-                    }
-                }
-            }
-        }
-        public bool Deleted
-        {
-            get
-            {
-                return _deleted;
-            }
-            set
-            {
-                _deleted = value;
-                if (Items != null && Items.Count > 0)
-                {
-                    foreach (var item in Items)
-                    {
-                        item.Deleted = value;
-                    }
-                }
-            }
-        }
-        public bool Mark
-        {
-            get
-            {
-                return _mark;
-            }
-            set
-            {
-                _mark = value;
-                if (Items != null && Items.Count > 0)
-                {
-                    foreach (var item in Items)
-                    {
-                        item.Mark = value;
-                    }
-                }
-            }
-        }
 
-        ObservableCollection<ListItem> _items { get; set; }
-        public ObservableCollection<ListItem> Items
-        {
-            get
-            {
-                return _items;
-            }
-            set
-            {
-                _items = value;
-                _items.CollectionChanged += new System.Collections.Specialized.NotifyCollectionChangedEventHandler(Items_CollectionChanged);
-                UpdateViews();
-            }
-        }
+        public bool Sync { get; set; }
+
+        public bool Deleted { get; set; }
+
+        public bool Mark { get; set; }
+
+        public ObservableCollection<ListItem> Items { get; set; }
+
         public ObservableCollection<ListItem> ViewItems { get; set; }
 
         public delegate void ListItemEventHandler(object sender, ListItemEventArgs e);
@@ -481,11 +404,12 @@ namespace SimpleListsOfCloud
         {
             ViewItems = new ObservableCollection<ListItem>();
             Items = new ObservableCollection<ListItem>();       
-            Name = "new";
+            Name = "_StartNode";
             ModifyTime = DateTime.Now;
             Sync = false;
             Deleted = false;
-            
+            Mark = false;
+
         }
 
         protected void OnUpdateViewComplite(EventArgs e)
@@ -500,6 +424,8 @@ namespace SimpleListsOfCloud
 
         protected void OnAddItem(ListItemEventArgs e)
         {
+            ModifyTime = DateTime.Now;
+            //UpdateViews();
 
             ListItemEventHandler handler = AddItem;
             if (handler != null)
@@ -510,7 +436,6 @@ namespace SimpleListsOfCloud
 
         protected void OnDeleteItem(ListItemEventArgs e)
         {
-
             ListItemEventHandler handler = DeleteItem;
             if (handler != null)
             {
@@ -518,22 +443,28 @@ namespace SimpleListsOfCloud
             }
         }
 
-        void Items_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
-        {
-            ModifyTime = DateTime.Now;
-            UpdateViews();
-        }
-
         public void UpdateViews()
         {
             if (Items.Count == 0) return;
-            ViewItems.Clear();
+
+            bool isMark = true;
             foreach (var item in Items)
             {
-                if (item.Deleted) continue;
-                ViewItems.Add(item);
+                if(item.Items.Count==0) continue;
+
+                isMark = true;
+                foreach (var childItem in item.Items)
+                {
+                    if (!childItem.Mark && !childItem.Deleted)
+                    {
+                        isMark = false;
+                        break;
+                    }
+                }
+                item.Mark = isMark;
             }
-            OnUpdateViewComplite(EventArgs.Empty);
+            
+
         }
 
         public void Delete(ListItem itemForDelete)
@@ -543,10 +474,10 @@ namespace SimpleListsOfCloud
             Items.Remove(itemForDelete);
             OnDeleteItem(new ListItemEventArgs(itemForDelete));
 
-            foreach (var item in Items)
-            {
-                item.Delete(itemForDelete);
-            }
+            //foreach (var item in Items)
+            //{
+            //    item.Delete(itemForDelete);
+            //}
         }
 
         /// <summary>
@@ -569,7 +500,7 @@ namespace SimpleListsOfCloud
         {
             if (FindItem(name) == null)
             {
-                var newItem = new ListItem {Name = name, Sync = isSync};
+                var newItem = new ListItem {Name = name, Sync = isSync, Mark = false};
                 //newItem.Parent = this;
                 Items.Insert(0, newItem);
                 OnAddItem(new ListItemEventArgs(newItem));
@@ -624,5 +555,40 @@ namespace SimpleListsOfCloud
             return result;
         }
 
+        public void SetDeleted(bool deleted)
+        {
+            Deleted = deleted;
+            ModifyTime = DateTime.Now;
+            //UpdateViews();
+        }
+
+        public void SetMark(bool mark)
+        {
+            ModifyTime = DateTime.Now;
+            Mark = mark;
+        }
+
+        public void DeleteSyncItems()
+        {
+            var itemsForDel = new List<ListItem>();
+            foreach (var item in Items)
+            {
+                if (item.Deleted && item.Sync)
+                {
+                    itemsForDel.Add(item);
+                }
+            }
+
+            foreach (var item in itemsForDel)
+            {
+                Delete(item);
+            }
+
+            //в оставщихся удаляем подчиненные
+            foreach (var item in Items)
+            {
+                item.DeleteSyncItems();
+            }
+        }
     }
 }

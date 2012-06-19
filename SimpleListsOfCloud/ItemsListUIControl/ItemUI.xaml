@@ -130,7 +130,7 @@
 
         <StackPanel Orientation="Horizontal">
             <Border Name="itemBorder" BorderThickness="2" BorderBrush="#59000000" Margin="0,5,1,5" CornerRadius="0"
-                            Grid.Column="0" Background="#FFE2E2E2" Tap="Border_Tap" Width="440">
+                            Grid.Column="0" Background="White" Tap="Border_Tap" Width="440">
 
                 <TextBox x:Name="text" Text="text" FontSize="26" TextAlignment="Left" VerticalAlignment="Center"
                          Style="{StaticResource TextBoxStyle1}"
@@ -141,7 +141,11 @@
             </Border>
             <Image Name="DeleteImage" Source="/SimpleListsOfCloud;component/Images/appbar.delete.png" Stretch="None" />
         </StackPanel>
-        <Rectangle Name="markComplite" VerticalAlignment="Center" Fill="Black" Height="2" Visibility="Collapsed" />
+        
+        <Rectangle Name="markComplite" VerticalAlignment="Center" Fill="White" Height="2" Visibility="Collapsed" 
+                   HorizontalAlignment="Center" Width="400" Stroke="Black" />
+        
+        
     </Grid>
 
 </UserControl>

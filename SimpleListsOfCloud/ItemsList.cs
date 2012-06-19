@@ -193,6 +193,11 @@ namespace SimpleListsOfCloud
                         _downloadCounter++;
                         client.DownloadAsync(String.Format("{0}/content", (string)content["id"]), newGroup);
                     }
+                    else
+                    {
+                        newGroup.Sync = true;
+                        syncItems.Add(name);
+                    }
                 }
                 else if (newGroup != null && newGroup.Sync)
                 {

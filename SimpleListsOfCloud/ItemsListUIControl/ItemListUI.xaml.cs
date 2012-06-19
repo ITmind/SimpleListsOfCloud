@@ -141,6 +141,11 @@ namespace SimpleListsOfCloud
 
         #endregion
 
+        public void RefillList()
+        {
+            FillList(currItem);
+        }
+
         public void FillList(ListItem items)
         {
             //items.Sort();

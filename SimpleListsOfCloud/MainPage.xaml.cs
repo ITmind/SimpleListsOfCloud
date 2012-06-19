@@ -79,9 +79,10 @@ namespace SimpleListsOfCloud
         void itemsList_GetDataComplited(object sender, EventArgs e)
         {
             Debug.WriteLine("itemsList_GetDataComplited");
-            //lbItems.ItemsSource = App.Current.ListItems.StartNode.ViewItems;
-            //App.Current.ListItems.StartNode.Sort();
-            tasklist_listbox.FillList(App.Current.ListItems.StartNode);
+
+            //tasklist_listbox.FillList(App.Current.ListItems.StartNode);
+            tasklist_listbox.RefillList();
+
             syncAnim.Stop();
             if (ApplicationBar != null && ApplicationBar.Buttons.Count > 0)
             {
@@ -231,6 +232,11 @@ namespace SimpleListsOfCloud
             loaded = true;
         }
 
+        /// <summary>
+        /// button back
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void ApplicationBarIconButton_Click_1(object sender, EventArgs e)
         {
             tasklist_listbox.FillList(App.Current.ListItems.StartNode);
@@ -239,6 +245,7 @@ namespace SimpleListsOfCloud
         private void ApplicationBarMenuItem_Click(object sender, EventArgs e)
         {
             App.Current.ListItems.StartNode.Sort();
+            tasklist_listbox.RefillList();
         }
         
     }

@@ -272,19 +272,26 @@ namespace SimpleListsOfCloud
         private void text_LostFocus(object sender, RoutedEventArgs e)
         {
             textFocused = false;
-            if (this.Tag != null)
+            if (text.Text == "")
             {
-                if (listbox.currItem.FindItem(text.Text) != null)
+                listbox.onDeleteItem(this);
+            }
+            else
+            {
+                if (this.Tag != null)
                 {
-                    MessageBox.Show(String.Format("Item {0} is alredy present in list. Select another name.", text.Text));
-                    text.Focus();
-                }
-                else
-                {
-                    ((ListItem)this.Tag).Name = text.Text;
+                    if (listbox.currItem.FindItem(text.Text) != null)
+                    {
+                        MessageBox.Show(String.Format("Item {0} is alredy present in list. Select another name.", text.Text));
+                        text.Focus();
+                    }
+                    else
+                    {
+                        ((ListItem)this.Tag).Name = text.Text;
+                    }
                 }
             }
-        }
+    }
 
         private void text_Tap(object sender, System.Windows.Input.GestureEventArgs e)
         {

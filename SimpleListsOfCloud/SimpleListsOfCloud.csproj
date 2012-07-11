@@ -66,6 +66,9 @@
     <Reference Include="System.Xml" />
     <Reference Include="mscorlib.extensions" />
     <Reference Include="System.Xml.Linq" />
+    <Reference Include="WP7Mail">
+      <HintPath>.\WP7Mail.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App.xaml.cs">
@@ -124,6 +127,8 @@
     <Content Include="Images\appbar.back.png" />
     <Content Include="Images\appbar.refresh.0.png" />
     <Content Include="Images\appbar.upload.png" />
+    <Content Include="Images\icon_173_tr.png" />
+    <Content Include="Images\icon_62_tr.png" />
     <Content Include="SplashScreenImage.jpg" />
     <Content Include="Toolkit.Content\ApplicationBar.Cancel.png" />
     <Content Include="Toolkit.Content\ApplicationBar.Check.png" />

@@ -63,7 +63,7 @@ namespace SimpleListsOfCloud
             curFrame++;
             if (curFrame == numFrames) curFrame = 0;
 
-            ApplicationBarIconButton btn = (ApplicationBarIconButton)ApplicationBar.Buttons[1];
+            ApplicationBarIconButton btn = (ApplicationBarIconButton)ApplicationBar.Buttons[0];
             btn.IconUri = new Uri(String.Format("/Images/appbar.refresh.{0}.png", curFrame), UriKind.Relative);
         }
 
@@ -86,7 +86,7 @@ namespace SimpleListsOfCloud
             syncAnim.Stop();
             if (ApplicationBar != null && ApplicationBar.Buttons.Count > 0)
             {
-                ApplicationBarIconButton btn = (ApplicationBarIconButton)ApplicationBar.Buttons[1];
+                ApplicationBarIconButton btn = (ApplicationBarIconButton)ApplicationBar.Buttons[0];
                 btn.IconUri = new Uri("/Images/appbar.refresh.0.png", UriKind.Relative);
             }
         }
@@ -162,6 +162,7 @@ namespace SimpleListsOfCloud
             {
                 client = new LiveConnectClient(e.Session);
                 App.Current.LiveSession = e.Session;
+                TitleStackPanel.Background = new SolidColorBrush(Colors.Green);
                 this.txtLoginResult.Text = "Signed in.";
                 this.txtWelcome.Visibility = System.Windows.Visibility.Visible;
 

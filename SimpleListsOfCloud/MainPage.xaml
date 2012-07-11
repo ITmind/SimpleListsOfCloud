@@ -11,7 +11,7 @@
     mc:Ignorable="d" d:DesignWidth="480" d:DesignHeight="728"
     FontFamily="{StaticResource PhoneFontFamilyNormal}"
     FontSize="{StaticResource PhoneFontSizeNormal}"
-    Foreground="Black"
+    Foreground="White"
     SupportedOrientations="Portrait" Orientation="Portrait"
     shell:SystemTray.IsVisible="False" Loaded="PhoneApplicationPage_Loaded">
 
@@ -19,23 +19,22 @@
 
     </phone:PhoneApplicationPage.Resources>
     <!--LayoutRoot представляет корневую сетку, где размещается все содержимое страницы-->
-    <Grid x:Name="LayoutRoot" Background="White">
+    <Grid x:Name="LayoutRoot" Background="Black">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
        
-        <StackPanel Orientation="Vertical" x:Name="TitlePanel" Grid.Row="0" Margin="12,17,0,28">
-            <StackPanel Orientation="Horizontal">
+        <StackPanel Orientation="Vertical" x:Name="TitlePanel" Grid.Row="0" Margin="0,0,0,15">
+            <StackPanel Name="TitleStackPanel" Orientation="Horizontal" Background="Red">
                 <TextBlock x:Name="txtLoginResult" Text="Signed out" 
                            Style="{StaticResource PhoneTextSmallStyle}"
-                           Foreground="Black"/>
+                           Foreground="White"/>
                 <TextBlock x:Name="txtWelcome" Text="" Margin="0" 
                            Style="{StaticResource PhoneTextSmallStyle}"
-                           Foreground="Black"/>
+                           Foreground="White"/>
             </StackPanel>
-            <Rectangle Height="2" Stroke="Black" Opacity="0.5" Margin="0,0,12,0" />
         </StackPanel>
 
         
@@ -51,8 +50,7 @@
    
 
     <phone:PhoneApplicationPage.ApplicationBar>
-        <shell:ApplicationBar IsVisible="True" IsMenuEnabled="True" BackgroundColor="#FFF2F2F2" ForegroundColor="Black">
-            <shell:ApplicationBarIconButton IconUri="/Images/appbar.back.png" Text="Back" Click="ApplicationBarIconButton_Click_1" />
+        <shell:ApplicationBar IsVisible="True" IsMenuEnabled="True" BackgroundColor="Black" ForegroundColor="White">            
             <shell:ApplicationBarIconButton IconUri="/Images/appbar.refresh.1.png" Text="SkyDrive" Click="ApplicationBarIconButton_Click" x:Name="SyncButton" />
             <shell:ApplicationBar.MenuItems>
                 <shell:ApplicationBarMenuItem Text="Sort" Click="ApplicationBarMenuItem_Click" />

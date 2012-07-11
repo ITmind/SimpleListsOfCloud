@@ -17,6 +17,8 @@ using System.Linq;
 using System.IO.IsolatedStorage;
 using Microsoft.Phone.Shell;
 using System.Xml.Serialization;
+using WP7Mail.Helpers;
+using WP7Mail.Net;
 
 namespace SimpleListsOfCloud
 {
@@ -157,7 +159,7 @@ namespace SimpleListsOfCloud
 
         void client_UploadCompleted(object sender, LiveOperationCompletedEventArgs e)
         {
-            ((ListItem) e.UserState).ModifyTime = DateTime.Now;
+            //((ListItem) e.UserState).ModifyTime = DateTime.Now;
             _uploadCounter--;
             if (_uploadCounter <= 0)
             {
@@ -375,6 +377,12 @@ namespace SimpleListsOfCloud
                     }
                 }
             }
+        }
+    
+        void MailSync()
+        {
+            GMailOAuthHelper v= new GMailOAuthHelper("anonymous","anonymous");
+            PopClient pop = new PopClient("pop.gmail.com",110);
         }
     }
 

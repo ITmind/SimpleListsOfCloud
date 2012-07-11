@@ -143,7 +143,39 @@ namespace SimpleListsOfCloud
 
         public void RefillList()
         {
-            FillList(currItem);
+            //FillList(currItem);
+            List<ItemUI> forDelete = new List<ItemUI>(10);
+            List<ListItem> presentInGrid = new List<ListItem>(10);
+
+            currItem.UpdateViews();
+            foreach (ItemUI item in itemGrid.Children)
+            {
+                if (!currItem.Items.Contains((ListItem) item.Tag))
+                {
+                    forDelete.Add(item);
+                }
+                else
+                {
+                    presentInGrid.Add((ListItem) item.Tag);
+                }
+            }
+
+            foreach (var itemUi in forDelete)
+            {
+                itemGrid.Children.Remove(itemUi);
+            }
+
+            foreach (var item in currItem.Items)
+            {
+                if (presentInGrid.Contains(item)) continue;
+                if (item.Deleted) continue;
+                addItem(item);
+            }
+
+            updateItemGridHeight();
+            for (int idx = 0; idx < itemGrid.Children.Count; ++idx)
+                AnimationUtil.translateY((FrameworkElement)itemGrid.Children[idx], this.idxToPosition(idx), 200, (Action<object, EventArgs>)null);
+            UpdateColor();
         }
 
         public void FillList(ListItem items)

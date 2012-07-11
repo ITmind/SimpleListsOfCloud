@@ -25,8 +25,8 @@ namespace SimpleListsOfCloud
         private ItemListUI listbox;
         bool textFocused = false;
 
-        private Color _markColor = new HexColor("#E1E1E1");
-        private Color _empetyColor = new HexColor("#F0FFF0");
+        private Color _markColor = Colors.Gray;//new HexColor("#E1E1E1");
+        private Color _empetyColor = new HexColor("#00C1FF");//new HexColor("#F0FFF0");
         //private Color fillColor = new HexColor("#DCFFDC");
 
         public ItemUI()
@@ -45,7 +45,7 @@ namespace SimpleListsOfCloud
         {
             if (this.Tag != null)
             {
-                if (((ListItem) Tag).Mark)
+                if (((ListItem)Tag).Mark)
                 {
                     var count = ((ListItem)Tag).Items.Count;
                     var curColor = new Color
@@ -57,16 +57,16 @@ namespace SimpleListsOfCloud
                     };
 
                     itemBorder.Background = new SolidColorBrush(curColor);
-                    markComplite.Visibility = Visibility.Visible;  
+                    markComplite.Visibility = Visibility.Visible;
                 }
                 else
                 {
                     var count = ((ListItem)Tag).Items.Count;
                     var curColor = new Color
                                        {
-                                           B = (byte) (_empetyColor.B - count*30),
-                                           R = (byte) (_empetyColor.R - count*30),
-                                           G = _empetyColor.G,
+                                           B = (byte)(_empetyColor.B - count * 0),
+                                           R = (byte)(_empetyColor.R - count * 0),
+                                           G = (byte)(_empetyColor.G - count * 30),
                                            A = _empetyColor.A
                                        };
                     itemBorder.Background = new SolidColorBrush(curColor);
@@ -89,7 +89,7 @@ namespace SimpleListsOfCloud
             //    //{
             //    //    ((ListItem)this.Tag).Name = str;    
             //    //}
-                
+
             //}
             this.Dispatcher.BeginInvoke((Action)(() => onTextChanged((object)null, (TextChangedEventArgs)null)));
         }
@@ -246,7 +246,17 @@ namespace SimpleListsOfCloud
         {
             if (e.Key != Key.Enter)
                 return;
-            listbox.Focus();
+
+            var findedItem = listbox.currItem.FindItem(text.Text);
+            if (findedItem != null && !findedItem.Deleted)
+            {
+                MessageBox.Show(String.Format("Item {0} is alredy present in list. Select another name.", text.Text));
+            }
+            else
+            {
+                listbox.Focus();
+            }
+
         }
 
         private void Border_Tap(object sender, System.Windows.Input.GestureEventArgs e)
@@ -257,7 +267,7 @@ namespace SimpleListsOfCloud
                 //if (Tag != null && (Tag as ListItem).Items.Count > 0)
                 var parrent = ListItem.FindParrent(App.Current.ListItems.StartNode, Tag as ListItem);
                 if (Tag != null && parrent == App.Current.ListItems.StartNode)
-                {                    
+                {
                     listbox.FillList((Tag as ListItem));
                 }
             }
@@ -280,10 +290,20 @@ namespace SimpleListsOfCloud
             {
                 if (this.Tag != null)
                 {
-                    if (listbox.currItem.FindItem(text.Text) != null)
+                    var findedItem = listbox.currItem.FindItem(text.Text);
+                    if (findedItem != null && !findedItem.Deleted)
                     {
                         MessageBox.Show(String.Format("Item {0} is alredy present in list. Select another name.", text.Text));
                         text.Focus();
+                    }
+                    else if (findedItem != null && findedItem.Deleted)
+                    {
+                        listbox.currItem.Delete((ListItem) this.Tag);
+                        findedItem.Deleted = false;
+                        findedItem.Sync = false;
+                        findedItem.Items.Clear();
+                        findedItem.ModifyTime = DateTime.Now;
+                        this.Tag = findedItem;
                     }
                     else
                     {
@@ -291,7 +311,7 @@ namespace SimpleListsOfCloud
                     }
                 }
             }
-    }
+        }
 
         private void text_Tap(object sender, System.Windows.Input.GestureEventArgs e)
         {

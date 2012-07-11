@@ -119,7 +119,7 @@
             </Setter>
         </Style>
     </UserControl.Resources>
-    <Grid x:Name="LayoutRoot" Width="440" HorizontalAlignment="Center" Background="Transparent" Hold="onHold">
+    <Grid x:Name="LayoutRoot" Width="450" HorizontalAlignment="Center" Background="Transparent" Hold="onHold">
 
         <toolkit:GestureService.GestureListener>
             <toolkit:GestureListener GestureBegin="onDragStarted" DragDelta="onDragDelta" GestureCompleted="onDragCompleted" />
@@ -129,12 +129,12 @@
         </Grid.RenderTransform>
 
         <StackPanel Orientation="Horizontal">
-            <Border Name="itemBorder" BorderThickness="2" BorderBrush="#59000000" Margin="0,5,1,5" CornerRadius="0"
-                            Grid.Column="0" Background="White" Tap="Border_Tap" Width="440">
+            <Border Name="itemBorder" BorderThickness="0" Margin="0,5,1,5" CornerRadius="0"
+                            Grid.Column="0" Background="#00C1FF" Tap="Border_Tap" Width="450">
 
                 <TextBox x:Name="text" Text="text" FontSize="26" TextAlignment="Left" VerticalAlignment="Center"
                          Style="{StaticResource TextBoxStyle1}"
-                         HorizontalAlignment="Left" Padding="15,1,0,0" Foreground="Black" 
+                         HorizontalAlignment="Left" Padding="15,1,0,0" Foreground="White" 
                          CaretBrush="Black" Background="{Binding ElementName=itemBorder,Path=Background}" BorderBrush="{x:Null}"
                          HorizontalScrollBarVisibility="Disabled" 
                          TextChanged="onTextChanged" InputScope="Text" KeyUp="onKeyUp" GotFocus="text_GotFocus" LostFocus="text_LostFocus" Tap="text_Tap" />

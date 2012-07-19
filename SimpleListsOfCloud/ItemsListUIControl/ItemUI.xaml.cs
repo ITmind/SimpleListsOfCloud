@@ -47,28 +47,57 @@ namespace SimpleListsOfCloud
             {
                 if (((ListItem)Tag).Mark)
                 {
+                    Color curColor;
                     var count = ((ListItem)Tag).Items.Count;
-                    var curColor = new Color
+                    if (count < 10)
                     {
-                        B = (byte)(_markColor.B - count * 10),
-                        R = (byte)(_markColor.R - count * 10),
-                        G = (byte)(_markColor.G - count * 10),
-                        A = _markColor.A
-                    };
+                        curColor = new Color
+                        {
+                            B = (byte)(_markColor.B - count * 10),
+                            R = (byte)(_markColor.R - count * 10),
+                            G = (byte)(_markColor.G - count * 10),
+                            A = _markColor.A
+                        };
+                    }
+                    else
+                    {
+                        curColor = new Color
+                        {
+                            B = (byte)(_markColor.B - 100),
+                            R = (byte)(_markColor.R - 100),
+                            G = (byte)(_markColor.G - 100),
+                            A = _markColor.A
+                        };
+                    }
 
                     itemBorder.Background = new SolidColorBrush(curColor);
                     markComplite.Visibility = Visibility.Visible;
                 }
                 else
                 {
+                    Color curColor;
                     var count = ((ListItem)Tag).Items.Count;
-                    var curColor = new Color
-                                       {
-                                           B = (byte)(_empetyColor.B - count * 0),
-                                           R = (byte)(_empetyColor.R - count * 0),
-                                           G = (byte)(_empetyColor.G - count * 30),
-                                           A = _empetyColor.A
-                                       };
+                    if (count < 15)
+                    {
+                        curColor = new Color
+                                           {
+                                               B = (byte)(_empetyColor.B - count * 0),
+                                               R = (byte)(_empetyColor.R - count * 0),
+                                               G = (byte)(_empetyColor.G - count * 10),
+                                               A = _empetyColor.A
+                                           };
+                    }
+                    else
+                    {
+                        curColor = new Color
+                        {
+                            B = (byte)(_empetyColor.B - count * 0),
+                            R = (byte)(_empetyColor.R - count * 0),
+                            G = (byte)(_empetyColor.G - 15 * 10),
+                            A = _empetyColor.A
+                        };
+                    }
+
                     itemBorder.Background = new SolidColorBrush(curColor);
                     markComplite.Visibility = Visibility.Collapsed;
                 }

@@ -273,6 +273,7 @@ namespace SimpleListsOfCloud
 
         public void maximizeTaskList()
         {
+            //TODO: im many items not work
             AnimationUtil.opacity((FrameworkElement)itemGrid, 1.0, 300, (Action<object, EventArgs>)null);
             //this.updateList(taskList);
             for (int idx = 0; idx < itemGrid.Children.Count; ++idx)

@@ -32,6 +32,7 @@ namespace SimpleListsOfCloud
         DispatcherTimer syncAnim = new DispatcherTimer();
         int numFrames = 6;
         int curFrame = 0;
+        private bool clickSyncBtn = false;
 
         
         #endregion
@@ -49,6 +50,7 @@ namespace SimpleListsOfCloud
             //lbItems.ItemsSource = App.Current.ListItems.StartNode.ViewItems;
             //App.Current.ListItems.StartNode.Sort();
             tasklist_listbox.FillList(App.Current.ListItems.StartNode);
+            clickSyncBtn = false;
 
             backgroundLogin.RunWorkerAsync();
             syncAnim.Interval = new TimeSpan(0, 0, 0, 0, 100);
@@ -172,7 +174,11 @@ namespace SimpleListsOfCloud
             else if (e.Status == LiveConnectSessionStatus.Unknown && loaded)
             {
                 syncAnim.Stop();
-                LoginToSkyDrive(true);
+                if (this.clickSyncBtn)
+                {
+                    LoginToSkyDrive(true);
+                }
+                txtWelcome.Text = "No network";
             }
             else
             {
@@ -189,6 +195,7 @@ namespace SimpleListsOfCloud
 
         private void ApplicationBarIconButton_Click(object sender, EventArgs e)
         {
+            clickSyncBtn = true;
             syncAnim.Start();
             App.Current.ListItems.DownloadComplite = false;
             App.Current.ListItems.UploadComplite = false;

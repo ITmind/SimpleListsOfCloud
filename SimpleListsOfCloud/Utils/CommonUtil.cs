@@ -8,6 +8,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Shapes;
+using Microsoft.Phone.Marketplace;
 
 namespace SimpleListsOfCloud.Utils
 {
@@ -23,6 +24,16 @@ namespace SimpleListsOfCloud.Utils
             double translateY = TransformUtil.getTranslateY(item);
             int num = 100;
             return (int)(50.0 * Math.Abs(destPosition - translateY) / (double)num * ratio);
+        }
+
+        public static bool IsTrial()
+        {
+#if TRIAL
+                return true;                
+#else
+            var license = new LicenseInformation();
+            return license.IsTrial();
+#endif
         }
     }
 }

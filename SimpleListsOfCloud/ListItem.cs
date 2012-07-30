@@ -1,7 +1,8 @@
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Windows;
+using SimpleListsOfCloud.Utils;
 
 namespace SimpleListsOfCloud
 {
@@ -15,7 +16,7 @@ namespace SimpleListsOfCloud
     {
         public string Name { get; set; }
         public DateTime ModifyTime { get; set; }
-        public bool Sync { get; set; }
+        public DateTime LastSyncTime { get; set; }
         public bool Deleted { get; set; }
         public bool Mark { get; set; }
         public ObservableCollection<ListItem> Items { get; set; }
@@ -31,10 +32,9 @@ namespace SimpleListsOfCloud
             Items = new ObservableCollection<ListItem>();       
             Name = "_StartNode";
             ModifyTime = DateTime.Now;
-            Sync = false;
+            LastSyncTime = ModifyTime.Subtract(new TimeSpan(0, 0, 5));
             Deleted = false;
             Mark = false;
-
         }
 
         protected void OnUpdateViewComplite(EventArgs e)
@@ -75,11 +75,18 @@ namespace SimpleListsOfCloud
                                       Deleted = this.Deleted,
                                       Name = this.Name,
                                       ModifyTime = this.ModifyTime,
-                                      Sync = this.Sync,
+                                      LastSyncTime = this.LastSyncTime,
                                       Mark = this.Mark,
                                       Items = new ObservableCollection<ListItem>(this.Items)
                                   };
             return newItemList;
+        }
+
+        public void FillFrom(ListItem item)
+        {            
+            Mark = item.Mark;
+            ModifyTime = LastSyncTime;
+            Items = new ObservableCollection<ListItem>(item.Items);
         }
 
         public void UpdateViews()
@@ -88,7 +95,7 @@ namespace SimpleListsOfCloud
 
             foreach (var item in Items)
             {
-                if (item.Items.Count == 0)
+                if (item.Items.Count != 0)
                 {
                     item.Mark = item.Items.All(childItem => childItem.Mark || childItem.Deleted);
                 }
@@ -128,26 +135,36 @@ namespace SimpleListsOfCloud
 
         public ListItem Add(string name, bool isSync = false)
         {
+            if(CommonUtil.IsTrial() && Items.Count>=3)
+            {
+                MessageBox.Show("In trial version may be only 3 task in one list");
+                return null;
+            }
+
             if (FindItem(name) == null)
             {
-                var newItem = new ListItem {Name = name, Sync = isSync, Mark = false};
+                var newItem = new ListItem {Name = name, Mark = false};
                 //newItem.Parent = this;
                 Items.Insert(0, newItem);
                 OnAddItem(new ListItemEventArgs(newItem));
                 return newItem;
             }
-            else
-            {
-                return null;
-            }
+
+            return null;
         }
 
-        public ListItem FindItem(string name)
+        public ListItem FindItem(string name, bool includeDeleted = true)
         {
-            var findedGroup = from item in Items
-                              where item.Name.Equals(name)
-                              select item;
-            return findedGroup.FirstOrDefault();
+            //var findedGroup = from item in Items
+            //                  where item.Name.Equals(name)
+            //                  select item;
+            var findedGroup = Items.FirstOrDefault(x => x.Name.Equals(name));
+
+            if (findedGroup != null && (!includeDeleted && findedGroup.Deleted))
+            {
+                findedGroup = null;
+            }
+            return findedGroup;
         }
 
         /// <summary>
@@ -171,7 +188,7 @@ namespace SimpleListsOfCloud
             {                
                 foreach (var item in startNode.Items)
                 {
-                    result = ListItem.FindParrent(item, findNode); 
+                    result = FindParrent(item, findNode); 
                     if(result!=null) break;
                 }                
             }
@@ -192,16 +209,47 @@ namespace SimpleListsOfCloud
             Mark = mark;
         }
 
-        public void DeleteSyncItems()
+        public void SetLastSyncTime(DateTime time)
         {
-            var itemsForDel = new List<ListItem>();
+            LastSyncTime = time;
             foreach (var item in Items)
             {
-                if (item.Deleted && item.Sync)
+                item.LastSyncTime = time;
+                foreach (var listItem in item.Items)
                 {
-                    itemsForDel.Add(item);
+                    listItem.LastSyncTime = time;
                 }
             }
+        }
+
+        public void SetModifyTime(DateTime time)
+        {
+            ModifyTime = time;
+            foreach (var item in Items)
+            {
+                item.ModifyTime = time;
+                foreach (var listItem in item.Items)
+                {
+                    listItem.ModifyTime = time;
+                }
+            }
+        }
+
+        public void UpdateModifyTime()
+        {            
+            foreach (var item in Items)
+            {
+                //item.ModifyTime = time;
+                foreach (var listItem in item.Items.Where(listItem => item.ModifyTime < listItem.ModifyTime))
+                {
+                    item.ModifyTime = listItem.ModifyTime;
+                }
+            }
+        }
+
+        public void DeleteDeletedItems()
+        {
+            var itemsForDel = Items.Where(item => item.Deleted && item.ModifyTime < item.LastSyncTime).ToList();
 
             foreach (var item in itemsForDel)
             {
@@ -211,7 +259,7 @@ namespace SimpleListsOfCloud
             //в оставщихся удаляем подчиненные
             foreach (var item in Items)
             {
-                item.DeleteSyncItems();
+                item.DeleteDeletedItems();
             }
         }
     }

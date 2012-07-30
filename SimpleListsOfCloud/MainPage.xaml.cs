@@ -15,6 +15,7 @@ using Microsoft.Live;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Windows.Threading;
+using Microsoft.Phone.Net.NetworkInformation;
 using Microsoft.Phone.Shell;
 
 namespace SimpleListsOfCloud
@@ -43,10 +44,12 @@ namespace SimpleListsOfCloud
 
             DataContext = this;
             InitializeComponent();
-            backgroundLogin.DoWork += new DoWorkEventHandler(backgroundLogin_DoWork);
-            App.Current.SkyDriveFolders.FolderIDSearchComplited += new EventHandler(skyDriveFolders_FolderIDSearchComplited);
-            App.Current.SkyDriveFolders.GetFilesComplited += new EventHandler(skyDriveFolders_GetFilesComplited);
-            App.Current.ListItems.GetDataComplited += new EventHandler(itemsList_GetDataComplited);
+            backgroundLogin.DoWork += BackgroundLoginDoWork;
+            App.Current.SkyDriveFolders.FolderIDSearchComplited += skyDriveFolders_FolderIDSearchComplited;
+            App.Current.SkyDriveFolders.GetFilesComplited += skyDriveFolders_GetFilesComplited;
+            App.Current.SkyDriveFolders.Error += ListItemsError;
+            App.Current.ListItems.GetDataComplited += ItemsListGetDataComplited;
+            App.Current.ListItems.Error += ListItemsError;
             //lbItems.ItemsSource = App.Current.ListItems.StartNode.ViewItems;
             //App.Current.ListItems.StartNode.Sort();
             tasklist_listbox.FillList(App.Current.ListItems.StartNode);
@@ -54,31 +57,37 @@ namespace SimpleListsOfCloud
 
             backgroundLogin.RunWorkerAsync();
             syncAnim.Interval = new TimeSpan(0, 0, 0, 0, 100);
-            syncAnim.Tick += new EventHandler(syncAnim_Tick);
+            syncAnim.Tick += new EventHandler(SyncAnimTick);
 
             //listBox.ItemsSource = new List<string>() { "1", "2" };
             //
         }
 
-        void syncAnim_Tick(object sender, EventArgs e)
+        void ListItemsError(object sender, MessageEventArgs e)
+        {
+            syncAnim.Stop();
+            TitleStackPanel.Background = new SolidColorBrush(Colors.Red);
+            txtWelcome.Text = e.Message;
+            txtLoginResult.Text = "Not signed in.";
+            App.Current.LiveSession = null;
+        }
+
+        void SyncAnimTick(object sender, EventArgs e)
         {  
             curFrame++;
             if (curFrame == numFrames) curFrame = 0;
 
-            ApplicationBarIconButton btn = (ApplicationBarIconButton)ApplicationBar.Buttons[0];
+            var btn = (ApplicationBarIconButton)ApplicationBar.Buttons[0];
             btn.IconUri = new Uri(String.Format("/Images/appbar.refresh.{0}.png", curFrame), UriKind.Relative);
         }
 
-        void backgroundLogin_DoWork(object sender, DoWorkEventArgs e)
+        void BackgroundLoginDoWork(object sender, DoWorkEventArgs e)
         {
             Debug.WriteLine("backgroundLogin_DoWork");
-            this.Dispatcher.BeginInvoke(() =>
-                {                    
-                    LoginToSkyDrive();
-                });
+            this.Dispatcher.BeginInvoke(() => LoginToSkyDrive());
         }
 
-        void itemsList_GetDataComplited(object sender, EventArgs e)
+        void ItemsListGetDataComplited(object sender, EventArgs e)
         {
             Debug.WriteLine("itemsList_GetDataComplited");
 
@@ -88,14 +97,14 @@ namespace SimpleListsOfCloud
             syncAnim.Stop();
             if (ApplicationBar != null && ApplicationBar.Buttons.Count > 0)
             {
-                ApplicationBarIconButton btn = (ApplicationBarIconButton)ApplicationBar.Buttons[0];
+                var btn = (ApplicationBarIconButton)ApplicationBar.Buttons[0];
                 btn.IconUri = new Uri("/Images/appbar.refresh.0.png", UriKind.Relative);
             }
         }
 
         protected override void OnBackKeyPress(CancelEventArgs e)
         {
-            if (tasklist_listbox.currItem != App.Current.ListItems.StartNode)
+            if (tasklist_listbox.CurrItem != App.Current.ListItems.StartNode)
             {
                 e.Cancel = true;
                 tasklist_listbox.FillList(App.Current.ListItems.StartNode);
@@ -193,12 +202,21 @@ namespace SimpleListsOfCloud
         }
         #endregion
 
-        private void ApplicationBarIconButton_Click(object sender, EventArgs e)
+        private void ApplicationBarIconButtonClick(object sender, EventArgs e)
         {
+            if (!NetworkInterface.GetIsNetworkAvailable() || NetworkInterface.NetworkInterfaceType == NetworkInterfaceType.None)
+            {
+                //MessageBox.Show("No internet connection is available.  Try again later.");
+                txtWelcome.Text = "No network";
+                TitleStackPanel.Background = new SolidColorBrush(Colors.Red);
+                syncAnim.Stop();
+                App.Current.LiveSession = null;
+                return;
+            }
+
             clickSyncBtn = true;
             syncAnim.Start();
-            App.Current.ListItems.DownloadComplite = false;
-            App.Current.ListItems.UploadComplite = false;
+
             //если еще идет процесс инициализации то отмена
             if (backgroundLogin.IsBusy) return;
 
@@ -216,22 +234,30 @@ namespace SimpleListsOfCloud
 
         void LoginToSkyDrive(bool login = false)
         {
-            App.Current.ListItems.DownloadComplite = false;
-            App.Current.ListItems.UploadComplite = false;
+            if (!NetworkInterface.GetIsNetworkAvailable() || NetworkInterface.NetworkInterfaceType == NetworkInterfaceType.None)
+            {
+                //MessageBox.Show("No internet connection is available.  Try again later.");
+                txtWelcome.Text = "No network";
+                TitleStackPanel.Background = new SolidColorBrush(Colors.Red);
+                syncAnim.Stop();
+                clickSyncBtn = false;
+                return;
+            }
+        
 
-            LiveAuthClient auth = new LiveAuthClient("00000000480C5667");
+            var auth = new LiveAuthClient("00000000480C5667");
 
             if (login)
             {
                 syncAnim.Stop();
-                auth.LoginCompleted += new EventHandler<LoginCompletedEventArgs>(auth_LoginCompleted);
-                auth.LoginAsync(new string[] { "wl.signin", "wl.basic", "wl.skydrive", "wl.skydrive_update", "wl.offline_access" });
+                auth.LoginCompleted += auth_LoginCompleted;                
+                auth.LoginAsync(new[] { "wl.signin", "wl.basic", "wl.skydrive", "wl.skydrive_update", "wl.offline_access" });
             }
             else
             {
                 syncAnim.Start();
-                auth.InitializeAsync(new string[] { "wl.signin", "wl.basic", "wl.skydrive", "wl.skydrive_update", "wl.offline_access" });
-                auth.InitializeCompleted += new EventHandler<LoginCompletedEventArgs>(auth_LoginCompleted);
+                auth.InitializeAsync(new[] { "wl.signin", "wl.basic", "wl.skydrive", "wl.skydrive_update", "wl.offline_access" });
+                auth.InitializeCompleted += auth_LoginCompleted;
             }
         }
 
@@ -254,6 +280,11 @@ namespace SimpleListsOfCloud
         {
             App.Current.ListItems.StartNode.Sort();
             tasklist_listbox.RefillList();
+        }
+
+        private void HelpButton_Click(object sender, EventArgs e)
+        {
+            NavigationService.Navigate(new Uri("/HelpPage.xaml",UriKind.Relative));
         }
         
     }

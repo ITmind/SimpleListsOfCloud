@@ -12,24 +12,34 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Shapes;
 using Microsoft.Live;
+using SimpleListsOfCloud.Utils;
 
 namespace SimpleListsOfCloud
 {
-    public class Download
+    public class Download : IDisposable
     {
         public event EventHandler DownloadComplited;
+        public event EventHandler<MessageEventArgs> Error;
+
         private readonly LiveConnectClient _client;
         private readonly ListItem _cache;
         private int _downloadCounter = 0;
+        private bool _disposed = false;
 
-        public Download(LiveConnectClient client, ListItem cache)
+        public Download(ListItem cache)
         {
-            _client = client;
+            //_client = client;
+            _client = new LiveConnectClient(App.Current.LiveSession);
             _cache = cache;
-            client.DownloadCompleted += ClientDownloadCompleted;
+            _client.DownloadCompleted += ClientDownloadCompleted;
         }
 
-        public void DownloadSync(IEnumerable<object> files)
+        ~Download()
+        {
+            Dispose(false);
+        }
+
+        public void Start(IEnumerable<object> files)
         {
             foreach (IDictionary<string, object> content in files)
             {
@@ -61,6 +71,9 @@ namespace SimpleListsOfCloud
 
 
             }
+
+            _downloadCounter++;
+            ClientDownloadCompleted(this,new LiveDownloadCompletedEventArgs(null,null));
         }
 
         void ClientDownloadCompleted(object sender, LiveDownloadCompletedEventArgs e)
@@ -68,34 +81,40 @@ namespace SimpleListsOfCloud
             if (e.Result != null)
             {
                 var parrentItem = (ListItem)e.UserState;
-                parrentItem.Items.Clear();
+                //parrentItem.Items.Clear();
                 var sr = new StreamReader(e.Result);
                 string text = sr.ReadToEnd();
                 e.Result.Close();
-                parrentItem.Items = new ObservableCollection<ListItem>();
+                //parrentItem.Items = new ObservableCollection<ListItem>();
 
                 string[] itemsArray = text.Split(Environment.NewLine.ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
-                bool isMark = true;
-                foreach (var task in itemsArray)
+                bool isMark = true;                
+
+                var numItem = itemsArray.Length > 3 && CommonUtil.IsTrial() ? 3 : itemsArray.Length;
+
+                for (int index = 0; index < numItem; index++)
                 {
-                    //if (task[0] == '-')
-                    var item = parrentItem.Add(task, true);
-                    if (item.Name[0] == '-')
+                    var task = itemsArray[index];
+                    bool childMark = false;
+                    if (task[0] == '-')
                     {
-                        item.Mark = true;
-                        item.Name = task.Substring(1);
+                        childMark = true;
+                        task = task.Substring(1);
                     }
                     else
                     {
                         isMark = false;
                     }
 
+                    var item = parrentItem.FindItem(task, false) ?? parrentItem.Add(task, true);
+                    item.Mark = childMark;
+
                 }
                 parrentItem.Mark = parrentItem.Items.Count > 0 && isMark;
             }
-            else
+            else if(e.Error!=null)
             {
-                //infoTextBlock.Text = "Error downloading image: " + e.Error.ToString();
+                OnError(e.Error.Message);
             }
 
             _downloadCounter--;
@@ -110,6 +129,34 @@ namespace SimpleListsOfCloud
         {
             EventHandler handler = DownloadComplited;
             if (handler != null) handler(this, e);
+        }
+
+        public void OnError(string message)
+        {
+            EventHandler<MessageEventArgs> handler = Error;
+            if (handler != null) handler(this, new MessageEventArgs(message));
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            // Check to see if Dispose has already been called.
+            if (!this._disposed)
+            {
+                if (disposing)
+                {
+                    _client.DownloadCompleted -= ClientDownloadCompleted;
+                    DownloadComplited = null;
+                }
+
+                _disposed = true;
+
+            }
         }
     }
 }

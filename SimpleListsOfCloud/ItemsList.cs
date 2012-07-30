@@ -1,22 +1,10 @@
 ﻿using System;
-using System.Net;
-using System.Runtime.Serialization;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Documents;
-using System.Windows.Ink;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Animation;
-using System.Windows.Shapes;
-using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Threading;
 using System.Collections.Generic;
 using Microsoft.Live;
-using System.IO;
-using System.Linq;
 using System.IO.IsolatedStorage;
 using Microsoft.Phone.Shell;
-using System.Xml.Serialization;
 using WP7Mail.Helpers;
 using WP7Mail.Net;
 
@@ -25,7 +13,8 @@ namespace SimpleListsOfCloud
     public class ItemsList
     {
         private ListItem _startNode;
-        public event EventHandler GetDataComplited;      
+        public event EventHandler GetDataComplited;
+        public event EventHandler<MessageEventArgs> Error;
 
         public ListItem StartNode
         {
@@ -39,20 +28,23 @@ namespace SimpleListsOfCloud
             }
         }
 
+        private DateTime _lastSyncTime;
+        private ListItem _cache;
+        private IList<object> _files;
+
         #region EventHandler
         
         protected void OnGetDataComplited(EventArgs e)
         {
-            DownloadComplite = true;
-            foreach (var item in StartNode.Items)
-            {
-                if (!syncItems.Contains(item.Name))
-                {
-                    item.Deleted = true;
-                }
-            }
+            //foreach (var item in StartNode.Items)
+            //{
+            //    if (!syncItems.Contains(item.Name))
+            //    {
+            //        item.Deleted = true;
+            //    }
+            //}
 
-            DeleteSyncItems();
+            //DeleteSyncItems();
             Save();
 
             EventHandler handler = GetDataComplited;
@@ -62,14 +54,18 @@ namespace SimpleListsOfCloud
             }
         }
 
+        public void OnError(string message)
+        {
+            EventHandler<MessageEventArgs> handler = Error;
+            if (handler != null) handler(this, new MessageEventArgs(message));
+        }
+
         #endregion
 
         //protected void On
         public ItemsList()
         {
             StartNode = new ListItem();
-            UploadComplite = false;
-            DownloadComplite = false;
         }
 
         /// <summary>
@@ -78,40 +74,92 @@ namespace SimpleListsOfCloud
         /// <param name="files"></param>
         public void Sync(IList<object> files)
         {
+            _files = files;
             //downloadCounter = files.Count;
             if (App.Current.LiveSession == null)
             {
                 //infoTextBlock.Text = "You must sign in first.";
             }
             else
-            {                   
-                //сначала грузим все в облако
-                if (!UploadComplite)
-                {
-                    UpdateModifyTime();
+            {
+                _cache = StartNode.Copy();
+                _cache.UpdateModifyTime();
+                _lastSyncTime = DateTime.Now;
 
-                    //опреации производим с кешем
-                    UploadSync(files, _startNode.Copy());
-
-                    if (_uploadCounter <= 0)
-                    {
-                        OnUploadComplited(EventArgs.Empty);
-                    }
-                }
-                else if (!DownloadComplite)
-                {
-                    DownloadSync(files);
-                    if (_downloadCounter <= 0)
-                    {
-                        //Save();
-                        OnGetDataComplited(EventArgs.Empty);
-                    }
-                }
-
-                //удалим остатки
-                //DeleteNotSyncItems(StartNode.Items);
+                var upload = new Upload(_cache);
+                upload.UploadComplited += UploadUploadComplited;
+                upload.Error += SyncError;
+                upload.Start(_files);
+                
             }
 
+        }
+
+        void SyncError(object sender, MessageEventArgs e)
+        {
+            OnError(e.Message);
+        }
+
+        void SyncWithCache(ListItem cache)
+        {
+            var syncItem = new List<ListItem>(40);
+
+            foreach (var item in StartNode.Items)
+            {
+                ListItem cacheItem = cache.FindItem(item.Name);
+                if(cacheItem == null) continue;
+                syncItem.Add(cacheItem);
+
+                if(item.ModifyTime < item.LastSyncTime)
+                {                    
+                    item.FillFrom(cacheItem);                    
+                }
+                else
+                {
+                    //проверим все подчиненные
+                    foreach (var listItem in item.Items)
+                    {
+                        if (listItem.ModifyTime < listItem.LastSyncTime)
+                        {
+                            cacheItem = cacheItem.FindItem(listItem.Name);
+                            if (cacheItem == null) continue;
+
+                            item.FillFrom(cacheItem);
+                        }
+                    }
+                }
+            }
+
+            foreach (var item in cache.Items)
+            {
+                if (!syncItem.Contains(item))
+                {
+                    StartNode.Items.Add(item.Copy());
+                }
+            }
+        }
+
+        void DownloadDownloadComplited(object sender, EventArgs e)
+        {
+            _cache.DeleteDeletedItems();
+            _cache.SetModifyTime(_lastSyncTime);
+            //зафиксируем время последней успешной синхронизации
+            StartNode.SetLastSyncTime(_lastSyncTime);
+            //удалим все помеченные на удаление и у которых время модификации меньше времени синхронизации
+            StartNode.DeleteDeletedItems();
+            //синхронизируем кеш с рабочими данными
+            SyncWithCache(_cache);
+
+            OnGetDataComplited(EventArgs.Empty);
+            
+        }
+
+        void UploadUploadComplited(object sender, EventArgs e)
+        {
+            var download = new Download(_cache);
+            download.DownloadComplited += DownloadDownloadComplited;
+            download.Error += SyncError;
+            download.Start(_files);
         }
 
         /// <summary>
@@ -153,31 +201,7 @@ namespace SimpleListsOfCloud
             }
             iss.Save();
         }
-
-
-        public void DeleteSyncItems()
-        {
-            StartNode.DeleteSyncItems();
-        }
-
-        void UpdateModifyTime()
-        {
-            foreach (var item in StartNode.Items)
-            {
-                foreach (var listItem in item.Items)
-                {
-                    if(item.ModifyTime<listItem.ModifyTime)
-                    {
-                        item.ModifyTime = listItem.ModifyTime;
-                    }
-                    else if (item.ModifyTime > listItem.ModifyTime)
-                    {
-                        listItem.ModifyTime = item.ModifyTime;
-                    }
-                }
-            }
-        }
-    
+ 
         void MailSync()
         {
             GMailOAuthHelper v= new GMailOAuthHelper("anonymous","anonymous");

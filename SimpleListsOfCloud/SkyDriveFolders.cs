@@ -16,9 +16,11 @@ namespace SimpleListsOfCloud
 {
     public class SkyDriveFolders
     {
+        private const string _folderName = "CloudListData";
         private string folderID = "";
         public event EventHandler FolderIDSearchComplited;
         public event EventHandler GetFilesComplited;
+        public event EventHandler<MessageEventArgs> Error;
 
         public List<object> files = null;
 
@@ -53,6 +55,12 @@ namespace SimpleListsOfCloud
             }
         }
 
+        public void OnError(string message)
+        {
+            EventHandler<MessageEventArgs> handler = Error;
+            if (handler != null) handler(this, new MessageEventArgs(message));
+        }
+
         #region FolderID
         public void GetFolderID()
         {
@@ -71,7 +79,7 @@ namespace SimpleListsOfCloud
                 List<object> data = (List<object>)e.Result["data"];
                 foreach (IDictionary<string, object> content in data)
                 {
-                    if ((string)content["name"] == "SimpleListsOfCloudData")
+                    if ((string)content["name"] == _folderName)
                     {
                         FolderID = (string)content["id"];
                         return;
@@ -79,7 +87,7 @@ namespace SimpleListsOfCloud
                     //skyContent.Name = (string)content["name"];
                 }
 
-                CreateFolder("SimpleListsOfCloudData");
+                CreateFolder(_folderName);
             }
         }
 
@@ -132,6 +140,10 @@ namespace SimpleListsOfCloud
             {
                 files = (List<object>)e.Result["data"];
                 OnGetFilesComplited(EventArgs.Empty);
+            }
+            else
+            {
+                OnError(e.Error.Message);
             }
         }
 

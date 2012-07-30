@@ -1,12 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010 Express for Windows Phone
+# Visual Studio 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleListsOfCloud", "SimpleListsOfCloud\SimpleListsOfCloud.csproj", "{E17F0BA0-6397-49E2-8710-6517F813AAC9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
+		Trial|Any CPU = Trial|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{E17F0BA0-6397-49E2-8710-6517F813AAC9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -15,6 +16,9 @@ Global
 		{E17F0BA0-6397-49E2-8710-6517F813AAC9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E17F0BA0-6397-49E2-8710-6517F813AAC9}.Release|Any CPU.Build.0 = Release|Any CPU
 		{E17F0BA0-6397-49E2-8710-6517F813AAC9}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{E17F0BA0-6397-49E2-8710-6517F813AAC9}.Trial|Any CPU.ActiveCfg = Trial|Any CPU
+		{E17F0BA0-6397-49E2-8710-6517F813AAC9}.Trial|Any CPU.Build.0 = Trial|Any CPU
+		{E17F0BA0-6397-49E2-8710-6517F813AAC9}.Trial|Any CPU.Deploy.0 = Trial|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

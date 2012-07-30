@@ -1,29 +1,23 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Animation;
-using System.Windows.Shapes;
 using SimpleListsOfCloud.Utils;
 using Microsoft.Phone.Controls;
-using System.Diagnostics;
 
 namespace SimpleListsOfCloud
 {
     public partial class ItemUI : UserControl
     {
-        public bool disableGesture;
-        private bool reorderStarted;
-        private double dragStartX;
-        private bool draggingToDelete;
-        private bool draggingToComplete;
+        public bool DisableGesture;
+        private bool _reorderStarted;
+        private double _dragStartX;
+        private bool _draggingToDelete;
+        private bool _draggingToComplete;
         private ItemListUI listbox;
-        bool textFocused = false;
+        bool _textFocused = false;
 
         private Color _markColor = Colors.Gray;//new HexColor("#E1E1E1");
         private Color _empetyColor = new HexColor("#00C1FF");//new HexColor("#F0FFF0");
@@ -43,12 +37,12 @@ namespace SimpleListsOfCloud
 
         public void Update()
         {
-            if (this.Tag != null)
+            if (Tag != null)
             {
+                var count = ((ListItem)Tag).Items.Count(x => !x.Deleted);
+                Color curColor;
                 if (((ListItem)Tag).Mark)
-                {
-                    Color curColor;
-                    var count = ((ListItem)Tag).Items.Count;
+                {                    
                     if (count < 10)
                     {
                         curColor = new Color
@@ -69,14 +63,11 @@ namespace SimpleListsOfCloud
                             A = _markColor.A
                         };
                     }
-
-                    itemBorder.Background = new SolidColorBrush(curColor);
                     markComplite.Visibility = Visibility.Visible;
+                    
                 }
                 else
-                {
-                    Color curColor;
-                    var count = ((ListItem)Tag).Items.Count;
+                {               
                     if (count < 15)
                     {
                         curColor = new Color
@@ -97,14 +88,14 @@ namespace SimpleListsOfCloud
                             A = _empetyColor.A
                         };
                     }
-
-                    itemBorder.Background = new SolidColorBrush(curColor);
                     markComplite.Visibility = Visibility.Collapsed;
                 }
+                itemBorder.Background = new SolidColorBrush(curColor);
+                
             }
         }
 
-        public void setText(string str)
+        public void SetText(string str)
         {
             text.Text = str;
             //if (this.Tag != null)
@@ -120,10 +111,10 @@ namespace SimpleListsOfCloud
             //    //}
 
             //}
-            this.Dispatcher.BeginInvoke((Action)(() => onTextChanged((object)null, (TextChangedEventArgs)null)));
+            Dispatcher.BeginInvoke(() => OnTextChanged(null, null));
         }
 
-        private void onTextChanged(object sender, TextChangedEventArgs e)
+        private void OnTextChanged(object sender, TextChangedEventArgs e)
         {
             //if (this.Tag != null)
             //{
@@ -134,51 +125,51 @@ namespace SimpleListsOfCloud
 
         private void onHold(object sender, System.Windows.Input.GestureEventArgs e)
         {
-            if (this.disableGesture || this.reorderStarted)
+            if (DisableGesture || _reorderStarted)
                 return;
             e.Handled = true;
-            this.listbox.onReorderStarted(this);
+            listbox.onReorderStarted(this);
         }
 
         private void onDragStarted(object sender, Microsoft.Phone.Controls.GestureEventArgs e)
         {
-            if (this.disableGesture)
+            if (DisableGesture)
                 return;
-            if (this.reorderStarted)
+            if (_reorderStarted)
             {
                 e.Handled = true;
             }
             else
             {
-                if (draggingToDelete)
+                if (_draggingToDelete)
                     return;
-                this.dragStartX = e.GetPosition((UIElement)this).X;
+                _dragStartX = e.GetPosition(this).X;
             }
         }
 
         private void onManipulationCompleted(object sender, ManipulationCompletedEventArgs e)
         {
-            this.onDragCompleted((object)this.LayoutRoot, (Microsoft.Phone.Controls.GestureEventArgs)null);
+            OnDragCompleted((object)this.LayoutRoot, (Microsoft.Phone.Controls.GestureEventArgs)null);
         }
 
-        private void onDragCompleted(object sender, Microsoft.Phone.Controls.GestureEventArgs e)
+        private void OnDragCompleted(object sender, Microsoft.Phone.Controls.GestureEventArgs e)
         {
-            if (this.disableGesture)
+            if (DisableGesture)
                 return;
-            if (this.reorderStarted)
+            if (_reorderStarted)
             {
                 if (e != null)
                     e.Handled = true;
-                this.listbox.onReorderCompleted(this);
+                listbox.onReorderCompleted(this);
             }
-            else if (draggingToComplete)
+            else if (_draggingToComplete)
             {
                 if (e != null)
                     e.Handled = true;
-                draggingToComplete = false;
+                _draggingToComplete = false;
                 //listbox.onDraggingToCompleteEnded();
                 listbox.onDraggingToDeleteEnded();
-                double translateX = TransformUtil.getTranslateX((FrameworkElement)LayoutRoot);
+                double translateX = TransformUtil.getTranslateX(LayoutRoot);
                 if (translateX < 150.0)
                 {
                     AnimationUtil.translateX((FrameworkElement)LayoutRoot, translateX, 0.0, 100, (Action<object, EventArgs>)null);
@@ -197,11 +188,11 @@ namespace SimpleListsOfCloud
             }
             else
             {
-                if (!this.draggingToDelete)
+                if (!this._draggingToDelete)
                     return;
                 if (e != null)
                     e.Handled = true;
-                this.draggingToDelete = false;
+                this._draggingToDelete = false;
                 DeleteImage.Visibility = System.Windows.Visibility.Collapsed;
                 itemBorder.Width = 440;
 
@@ -220,29 +211,29 @@ namespace SimpleListsOfCloud
 
         private void onDragDelta(object sender, DragDeltaGestureEventArgs e)
         {
-            if (this.disableGesture)
+            if (this.DisableGesture)
                 return;
             bool flag = e.HorizontalChange < 0.0 && e.Direction == Orientation.Horizontal;
             bool flag2 = e.HorizontalChange > 0.0 && e.Direction == Orientation.Horizontal;
 
-            if (this.reorderStarted)
+            if (this._reorderStarted)
             {
                 e.Handled = true;
                 listbox.onReorderDelta(this, e.VerticalChange);
             }
-            else if (!draggingToDelete && flag && !draggingToComplete)
+            else if (!_draggingToDelete && flag && !_draggingToComplete)
             {
                 e.Handled = true;
-                draggingToDelete = true;
+                _draggingToDelete = true;
                 listbox.onDraggingToDelete();
-                TransformUtil.addTranslateDelta((FrameworkElement)LayoutRoot, e.HorizontalChange, 0.0);
+                TransformUtil.addTranslateDelta(LayoutRoot, e.HorizontalChange, 0.0);
                 DeleteImage.Visibility = System.Windows.Visibility.Visible;
                 itemBorder.Width = 440 - DeleteImage.ActualWidth;
             }
-            else if (!draggingToDelete && flag2 && !draggingToComplete)
+            else if (!_draggingToDelete && flag2 && !_draggingToComplete)
             {
                 e.Handled = true;
-                draggingToComplete = true;
+                _draggingToComplete = true;
                 //listbox.onDraggingToComplete(this);
                 listbox.onDraggingToDelete();
                 TransformUtil.addTranslateDelta((FrameworkElement)LayoutRoot, e.HorizontalChange, 0.0);
@@ -251,23 +242,23 @@ namespace SimpleListsOfCloud
             }
             else
             {
-                if (!draggingToDelete && !draggingToComplete)
+                if (!_draggingToDelete && !_draggingToComplete)
                     return;
                 e.Handled = true;
                 TransformUtil.addTranslateDelta((FrameworkElement)LayoutRoot, e.HorizontalChange, 0.0);
             }
         }
 
-        public void onReorderStarted()
+        public void OnReorderStarted()
         {
-            this.reorderStarted = true;
+            _reorderStarted = true;
             AnimationUtil.zoom((FrameworkElement)this, 70.0, 100, (Action<object, EventArgs>)null);
             Canvas.SetZIndex((UIElement)this, 32766);
         }
 
-        public void onReorderCompleted()
+        public void OnReorderCompleted()
         {
-            this.reorderStarted = false;
+            this._reorderStarted = false;
             AnimationUtil.zoom((FrameworkElement)this, 0.0, 100, (Action<object, EventArgs>)null);
         }
 
@@ -276,7 +267,7 @@ namespace SimpleListsOfCloud
             if (e.Key != Key.Enter)
                 return;
 
-            var findedItem = listbox.currItem.FindItem(text.Text);
+            var findedItem = listbox.CurrItem.FindItem(text.Text);
             if (findedItem != null && !findedItem.Deleted)
             {
                 MessageBox.Show(String.Format("Item {0} is alredy present in list. Select another name.", text.Text));
@@ -288,9 +279,9 @@ namespace SimpleListsOfCloud
 
         }
 
-        private void Border_Tap(object sender, System.Windows.Input.GestureEventArgs e)
+        private void BorderTap(object sender, System.Windows.Input.GestureEventArgs e)
         {
-            if (!textFocused)
+            if (!_textFocused)
             {
                 //Debug.WriteLine("go");
                 //if (Tag != null && (Tag as ListItem).Items.Count > 0)
@@ -305,21 +296,21 @@ namespace SimpleListsOfCloud
 
         private void text_GotFocus(object sender, RoutedEventArgs e)
         {
-            textFocused = true;
+            _textFocused = true;
         }
 
         private void text_LostFocus(object sender, RoutedEventArgs e)
         {
-            textFocused = false;
+            _textFocused = false;
             if (text.Text == "")
             {
                 listbox.onDeleteItem(this);
             }
             else
             {
-                if (this.Tag != null)
+                if (Tag != null && ((ListItem)Tag).Name != text.Text)
                 {
-                    var findedItem = listbox.currItem.FindItem(text.Text);
+                    var findedItem = listbox.CurrItem.FindItem(text.Text);
                     if (findedItem != null && !findedItem.Deleted)
                     {
                         MessageBox.Show(String.Format("Item {0} is alredy present in list. Select another name.", text.Text));
@@ -327,24 +318,23 @@ namespace SimpleListsOfCloud
                     }
                     else if (findedItem != null && findedItem.Deleted)
                     {
-                        listbox.currItem.Delete((ListItem) this.Tag);
+                        listbox.CurrItem.Delete((ListItem) Tag);
                         findedItem.Deleted = false;
-                        findedItem.Sync = false;
                         findedItem.Items.Clear();
                         findedItem.ModifyTime = DateTime.Now;
-                        this.Tag = findedItem;
+                        Tag = findedItem;
                     }
                     else
                     {
-                        ((ListItem)this.Tag).Name = text.Text;
+                        ((ListItem)Tag).Name = text.Text;
                     }
                 }
             }
         }
 
-        private void text_Tap(object sender, System.Windows.Input.GestureEventArgs e)
+        private void TextTap(object sender, System.Windows.Input.GestureEventArgs e)
         {
-            textFocused = true;
+            _textFocused = true;
         }
     }
 }

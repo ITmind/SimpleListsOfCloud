@@ -209,7 +209,7 @@ namespace SimpleListsOfCloud
             if (!NetworkInterface.GetIsNetworkAvailable() || NetworkInterface.NetworkInterfaceType == NetworkInterfaceType.None)
             {
                 //MessageBox.Show("No internet connection is available.  Try again later.");
-                txtCurFolder.Text = "No network";
+                txtLoginResult.Text = "No network";
                 TitlePanel.Background = new SolidColorBrush(Colors.Red);
                 syncAnim.Stop();
                 App.Current.LiveSession = null;
@@ -239,7 +239,7 @@ namespace SimpleListsOfCloud
             if (!NetworkInterface.GetIsNetworkAvailable() || NetworkInterface.NetworkInterfaceType == NetworkInterfaceType.None)
             {
                 //MessageBox.Show("No internet connection is available.  Try again later.");
-                txtCurFolder.Text = "No network";
+                txtLoginResult.Text = "No network";
                 TitlePanel.Background = new SolidColorBrush(Colors.Red);
                 syncAnim.Stop();
                 clickSyncBtn = false;

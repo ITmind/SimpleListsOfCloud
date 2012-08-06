@@ -13,7 +13,8 @@
         <Setter Property="FontSize"
                 Value="{StaticResource PhoneFontSizeNormal}" />
         <Setter Property="Foreground"
-                Value="{StaticResource PhoneForegroundBrush}" />
+                Value="White" />
+        <Setter Property="Background" Value="Black"/>
         
         <!-- Use the following setter to enable/disable the system tray on the about page -->
         <Setter Property="shell:SystemTray.IsVisible"
@@ -55,17 +56,11 @@
     <Style x:Key="AboutPivotStyle"
            TargetType="controls2:Pivot">
         <!-- Some eye-hurting sample values: -->
-        <!-- Setting the background color of the pivot control/about page to DarkGreen, and the header color to Yellow
+
         <Setter Property="Background"
-                Value="DarkGreen" />
-        <Setter Property="HeaderTemplate">
-            <Setter.Value>
-                <DataTemplate>
-                    <ContentControl Content="{Binding}"
-                                    Foreground="Yellow" />
-                </DataTemplate>
-            </Setter.Value>
-        </Setter>-->
+                Value="Black" />
+        <Setter Property="Foreground" Value="White"/>
+
     </Style>
 
     <Style x:Key="AboutPivotItemStyle"
@@ -77,17 +72,21 @@
            TargetType="TextBlock"
            BasedOn="{StaticResource PhoneTextExtraLargeStyle}">
         <Setter Property="Foreground"
-                Value="{StaticResource PhoneAccentColor}" />
+                Value="White" />
     </Style>
 
     <Style x:Key="AboutTextSubTitleStyle"
            TargetType="TextBlock"
            BasedOn="{StaticResource PhoneTextLargeStyle}">
+        <Setter Property="Foreground"
+                Value="White" />
     </Style>
 
     <Style x:Key="AboutTextNormalStyle"
            TargetType="TextBlock"
            BasedOn="{StaticResource PhoneTextNormalStyle}">
+        <Setter Property="Foreground"
+                Value="White" />
     </Style>
 
     <Style x:Key="AboutTextNormalHighlightedStyle"
@@ -108,5 +107,8 @@
     <!-- The style used for the buttons (e.g. the review button) -->
     <Style x:Key="AboutButtonStyle"
            TargetType="Button">
+        <Setter Property="Foreground"
+                Value="White" />
+        <Setter Property="BorderBrush" Value="White"/>
     </Style>
 </ResourceDictionary>

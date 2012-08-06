@@ -25,17 +25,22 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-       
-        <StackPanel Orientation="Vertical" x:Name="TitlePanel" Grid.Row="0" Margin="0,0,0,15">
-            <StackPanel Name="TitleStackPanel" Orientation="Horizontal" Background="Red">
+
+        <Border x:Name="TitlePanel" Grid.Row="0" Margin="0,0,0,15" Background="Red">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>                    
+                </Grid.ColumnDefinitions>
+                
                 <TextBlock x:Name="txtLoginResult" Text="Signed out" 
                            Style="{StaticResource PhoneTextSmallStyle}"
-                           Foreground="White"/>
-                <TextBlock x:Name="txtWelcome" Text="" Margin="0" 
+                           Foreground="White" Grid.Column="0"/>
+                <TextBlock x:Name="txtCurFolder" Text="page" Margin="0,0,10,0" 
                            Style="{StaticResource PhoneTextSmallStyle}"
-                           Foreground="White"/>
-            </StackPanel>
-        </StackPanel>
+                           Foreground="White" HorizontalAlignment="Right" Grid.Column="1" MaxWidth="200" />
+            </Grid>
+        </Border>
 
         
 
@@ -55,6 +60,7 @@
             <shell:ApplicationBarIconButton IconUri="/Images/appbar.questionmark.png" Text="Help" x:Name="HelpButton" Click="HelpButton_Click" />
             <shell:ApplicationBar.MenuItems>
                 <shell:ApplicationBarMenuItem Text="Sort" Click="ApplicationBarMenuItem_Click" />
+                <shell:ApplicationBarMenuItem Text="Settings" x:Name="btnSettings" Click="btnSettings_Click" />
             </shell:ApplicationBar.MenuItems>
         </shell:ApplicationBar>
     </phone:PhoneApplicationPage.ApplicationBar>

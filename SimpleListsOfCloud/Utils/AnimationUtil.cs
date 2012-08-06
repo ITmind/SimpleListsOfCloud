@@ -47,7 +47,7 @@ namespace SimpleListsOfCloud.Utils
 
         public static void zoom(FrameworkElement item, double to, int msec, Action<object, EventArgs> callback)
         {
-            double globalOffsetZ = TransformUtil.getGlobalOffsetZ(item);
+            double globalOffsetZ = TransformUtil.GetGlobalOffsetZ(item);
             Storyboard storyboard = new Storyboard();
             DoubleAnimation doubleAnimation1 = new DoubleAnimation();
             doubleAnimation1.From = new double?(globalOffsetZ);

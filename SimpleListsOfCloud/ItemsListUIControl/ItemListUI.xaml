@@ -19,7 +19,7 @@
                 <toolkit:GestureListener GestureBegin="onDragStarted" DragDelta="onDragDelta" GestureCompleted="onDragCompleted" />
             </toolkit:GestureService.GestureListener>
             
-            <Grid x:Name="itemGrid" VerticalAlignment="Top" Height="0" Width="480" HorizontalAlignment="Center">
+            <Grid x:Name="itemGrid" VerticalAlignment="Top" MinHeight="100" Height="800" Width="480" HorizontalAlignment="Center">
                 
             </Grid>
 

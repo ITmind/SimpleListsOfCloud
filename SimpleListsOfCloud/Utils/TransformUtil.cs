@@ -81,37 +81,37 @@ namespace SimpleListsOfCloud.Utils
             return ((CompositeTransform)item.RenderTransform).TranslateY;
         }
 
-        public static void setGlobalOffsetZ(FrameworkElement item, double value)
+        public static void SetGlobalOffsetZ(FrameworkElement item, double value)
         {
             ((PlaneProjection)item.Projection).GlobalOffsetZ = value;
         }
 
-        public static double getGlobalOffsetZ(FrameworkElement item)
+        public static double GetGlobalOffsetZ(FrameworkElement item)
         {
             return ((PlaneProjection)item.Projection).GlobalOffsetZ;
         }
 
-        public static double getScaleY(FrameworkElement item)
+        public static double GetScaleY(FrameworkElement item)
         {
-            TransformUtil.addCompositeTransform(item);
+            addCompositeTransform(item);
             return ((CompositeTransform)item.RenderTransform).ScaleY;
         }
 
-        public static void setScaleY(FrameworkElement item, double value)
+        public static void SetScaleY(FrameworkElement item, double value)
         {
-            TransformUtil.addCompositeTransform(item);
+            addCompositeTransform(item);
             ((CompositeTransform)item.RenderTransform).ScaleY = value;
         }
 
         public static double getScaleX(FrameworkElement item)
         {
-            TransformUtil.addCompositeTransform(item);
+            addCompositeTransform(item);
             return ((CompositeTransform)item.RenderTransform).ScaleY;
         }
 
         public static void setScaleX(FrameworkElement item, double value)
         {
-            TransformUtil.addCompositeTransform(item);
+            addCompositeTransform(item);
             ((CompositeTransform)item.RenderTransform).ScaleX = value;
         }
 

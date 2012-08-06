@@ -8,7 +8,7 @@
     FontFamily="{StaticResource PhoneFontFamilyNormal}"
     FontSize="{StaticResource PhoneFontSizeNormal}"
     Foreground="Black"
-    d:DesignWidth="456" d:DesignHeight="50" Height="100" HorizontalAlignment="Center" VerticalAlignment="Top" RenderTransformOrigin="0,0" Width="480" ManipulationCompleted="onManipulationCompleted">
+    d:DesignWidth="456" d:DesignHeight="100" HorizontalAlignment="Center" VerticalAlignment="Top" RenderTransformOrigin="0,0" Width="480" ManipulationCompleted="onManipulationCompleted" SizeChanged="UserControl_SizeChanged">
 
     <UserControl.RenderTransform>
         <CompositeTransform />
@@ -128,16 +128,37 @@
             <CompositeTransform />
         </Grid.RenderTransform>
 
-        <StackPanel Orientation="Horizontal">
+        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" MinHeight="100">
             <Border Name="itemBorder" BorderThickness="0" Margin="0,5,1,5" CornerRadius="0"
-                            Grid.Column="0" Background="#00C1FF" Tap="BorderTap" Width="450">
-
-                <TextBox x:Name="text" Text="text" FontSize="26" TextAlignment="Left" VerticalAlignment="Center"
+                            Grid.Column="0" Background="{StaticResource PhoneAccentBrush}" Tap="BorderTap" Width="450">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="auto"/>
+                        <ColumnDefinition Width="100"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBox x:Name="text" MaxWidth="400" Grid.Column="0"
+                         Text="text" InputScope="Chat"
+                         FontSize="26" TextAlignment="Left" VerticalAlignment="Center"
                          Style="{StaticResource TextBoxStyle1}"
                          HorizontalAlignment="Left" Padding="15,1,0,0" Foreground="White" 
                          CaretBrush="Black" Background="{Binding ElementName=itemBorder,Path=Background}" BorderBrush="{x:Null}"
                          HorizontalScrollBarVisibility="Disabled" 
-                         TextChanged="OnTextChanged" InputScope="Text" KeyUp="onKeyUp" GotFocus="text_GotFocus" LostFocus="text_LostFocus" Tap="TextTap" />
+                         TextChanged="OnTextChanged" KeyUp="onKeyUp" 
+                         GotFocus="text_GotFocus" LostFocus="text_LostFocus" Tap="TextTap"
+                         TextWrapping="Wrap" IsHitTestVisible="False" AcceptsReturn="False" />
+                    <Border Width="200" HorizontalAlignment="Left" Name="tapZoneForEditText" Grid.Column="0" 
+                            Tap="tapZoneForEditText_Tap" BorderThickness="0" BorderBrush="Black" Background="Transparent" DoubleTap="tapZoneForEditText_DoubleTap" />
+
+                    <Image Grid.Column="1" Source="/SimpleListsOfCloud;component/Images/AlarmIcon.png" Stretch="UniformToFill" 
+                           Name="AlarmButton" Tap="AlarmButton_Tap" Visibility="{Binding VisiblityAlarm}" Width="40" Height="40" />
+                    <Ellipse Grid.Column="2" Stroke="White" StrokeThickness="5" Name="NumEllipse"
+                             VerticalAlignment="Center" HorizontalAlignment="Center" 
+                             Width="50" Height="50" Visibility="{Binding VisiblityNumTask}"/>
+                    <TextBlock Name="NumTask" HorizontalAlignment="Center" VerticalAlignment="Center" 
+                               Grid.Column="2" Text="{Binding NumItems}"
+                               Visibility="{Binding VisiblityNumTask}" Foreground="White" />
+                </Grid>
             </Border>
             <Image Name="DeleteImage" Source="/SimpleListsOfCloud;component/Images/appbar.delete.png" Stretch="None" />
         </StackPanel>

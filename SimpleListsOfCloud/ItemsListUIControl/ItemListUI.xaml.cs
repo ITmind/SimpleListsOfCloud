@@ -18,6 +18,14 @@ namespace SimpleListsOfCloud
 {
     public partial class ItemListUI : UserControl
     {
+        public event EventHandler<MessageEventArgs> ListRefill;
+
+        public void OnListRefill(string folderName)
+        {
+            EventHandler<MessageEventArgs> handler = ListRefill;
+            if (handler != null) handler(this, new MessageEventArgs(folderName));
+        }
+
         public Color ColorPivot = Color.FromArgb(byte.MaxValue, (byte)50, (byte)50, (byte)50);
         public double OpacityValue = 1.0;
         private double _itemHeight = -1.0;
@@ -65,13 +73,13 @@ namespace SimpleListsOfCloud
             _isDraggingListBox = false;
             if (!_isAddingItemViaDragTop)
                 return;
-            if (TransformUtil.getScaleY((FrameworkElement)_newItem) < 0.7)
+            if (TransformUtil.GetScaleY((FrameworkElement)_newItem) < 0.7)
             {
                 itemGrid.Children.Remove((UIElement)_newItem);
             }
             else
             {
-                TransformUtil.setScaleY((FrameworkElement)_newItem, 1.0);
+                TransformUtil.SetScaleY((FrameworkElement)_newItem, 1.0);
                 TransformUtil.setRotateX((FrameworkElement)_newItem, 0.0);
                 TransformUtil.setScaleX((FrameworkElement)_newItem, 1.0);
                 TransformUtil.setTranslateX((FrameworkElement)_newItem, 0.0);
@@ -88,61 +96,51 @@ namespace SimpleListsOfCloud
                     _newItem.text.Focus();
                 }
             }
-            updateItemGridHeight();
-            for (int idx = indexOfItem(_newItem) + 1; idx < itemGrid.Children.Count; ++idx)
-                TransformUtil.setTranslateY((FrameworkElement)itemGrid.Children[idx], idxToPosition(idx));
+            UpdateItemGridHeight();
+            for (int idx = IndexOfItem(_newItem) + 1; idx < itemGrid.Children.Count; ++idx)
+                TransformUtil.setTranslateY((FrameworkElement)itemGrid.Children[idx], IdxToPosition(idx));
             _newItem = (ItemUI)null;
             _isAddingItemViaDragTop = false;
-            enableNativeScrolling(true);
-            enableAllChildrenGesture(true);
+            EnableNativeScrolling(true);
+            EnableAllChildrenGesture(true);
         }
 
         private void onDragDelta(object sender, DragDeltaGestureEventArgs e)
         {
             if (_disableTopLevelGesture || !_isDraggingListBox)
                 return;
-            bool flag1 = e.GetPosition((UIElement)this.listbox).Y > _dragStartY;
+            bool flag1 = e.GetPosition(listbox).Y > _dragStartY;
             bool flag2 = _scrollViewer.VerticalOffset < 10.0 / itemGrid.Height;
             double verticalOffset = _scrollViewer.VerticalOffset;
             double scrollableHeight = _scrollViewer.ScrollableHeight;
 
-            if (!this._isAddingItemViaDragTop && flag2 && flag1)
-            {
+            if (!_isAddingItemViaDragTop && flag2 && flag1)
+            {                
                 e.Handled = true;
                 _isAddingItemViaDragTop = true;
-                enableAllChildrenGesture(false);
-                _newItem = addItem("new item");
-                //newItem.setText("pull to add list");
-
-                //itemGrid.Children.Remove(newItem);
-                //itemGrid.Children.Insert(0, newItem);
+                EnableAllChildrenGesture(false);
+                _newItem = AddItem("new item");
                 
-                moveItemToIdxPosition(_newItem, 0);
-                TransformUtil.setScaleY((FrameworkElement)_newItem, _lastDraggedYDist);
-                TransformUtil.setScaleX((FrameworkElement)_newItem, 0.9);
-                TransformUtil.setTranslateX((FrameworkElement)_newItem, 20.0);
-                //TransformUtil.setRotateX((FrameworkElement)this.newItem, -90.0);
-                itemGrid.Height = (double)(itemGrid.Children.Count - 1) * _itemHeight;
+                TransformUtil.setScaleX(_newItem, 0.9);
+                TransformUtil.setTranslateX(_newItem, 20.0);
+
             }
             else
             {
+                
                 if (!_isAddingItemViaDragTop)
-                    return;
+                    return;                
                 e.Handled = true;
-                //Debug.WriteLine("lastDraggedYDist:{0} VerticalChange:{1}", lastDraggedYDist, e.VerticalChange);
+
                 double num1 = Math.Min((_lastDraggedYDist + e.VerticalChange) / _itemHeight, 1.0);
-                //Debug.WriteLine(num1);
+
                 _lastDraggedYDist += e.VerticalChange;
-                TransformUtil.setScaleY((FrameworkElement)_newItem, num1);
-                TransformUtil.setScaleX((FrameworkElement)_newItem, 0.9+num1/10);
-                TransformUtil.setTranslateX((FrameworkElement)_newItem, 20.0-(num1*20));
-                //TransformUtil.setRotateX((FrameworkElement)this.newItem, num1 * 90.0 - 90.0);
+                TransformUtil.SetScaleY(_newItem, num1);
+                TransformUtil.setScaleX(_newItem, 0.9+num1/10);
+                TransformUtil.setTranslateX(_newItem, 20.0-(num1*20));
 
-                double num2 = TransformUtil.getScaleY((FrameworkElement)_newItem) * _itemHeight;
-                itemGrid.Height = Math.Max((double)(itemGrid.Children.Count - 1) * _itemHeight + num2, 0.0);
+                UpdateItemGrid(0);
 
-                for (int index = indexOfItem(_newItem) + 1; index < itemGrid.Children.Count; ++index)
-                    TransformUtil.setTranslateY((FrameworkElement)itemGrid.Children[index], idxToPosition(index - 1) + num2);
             }
         }
 
@@ -151,8 +149,8 @@ namespace SimpleListsOfCloud
         public void RefillList()
         {
             //FillList(currItem);
-            List<ItemUI> forDelete = new List<ItemUI>(10);
-            List<ListItem> presentInGrid = new List<ListItem>(10);
+            var forDelete = new List<ItemUI>(10);
+            var presentInGrid = new List<ListItem>(10);
 
             CurrItem.UpdateViews();
             foreach (ItemUI item in itemGrid.Children)
@@ -176,33 +174,33 @@ namespace SimpleListsOfCloud
             {
                 if (presentInGrid.Contains(item)) continue;
                 if (item.Deleted) continue;
-                addItem(item);
+                AddItem(item);
             }
 
-            updateItemGridHeight();
+            UpdateItemGridHeight();
             for (int idx = 0; idx < itemGrid.Children.Count; ++idx)
-                AnimationUtil.translateY((FrameworkElement)itemGrid.Children[idx], this.idxToPosition(idx), 50, (Action<object, EventArgs>)null);
+                AnimationUtil.translateY((FrameworkElement)itemGrid.Children[idx], IdxToPosition(idx), 50, null);
             UpdateColor();
         }
 
         public void FillList(ListItem items)
         {
-            //items.Sort();
+            OnListRefill(items.Name);
             items.UpdateViews();
             CurrItem = items;
-            minimizedTaskList(); 
+            MinimizedTaskList(); 
         }
 
-        void fill()
+        void Fill()
         {
             itemGrid.Children.Clear();
             foreach (var item in CurrItem.Items)
             {
                 if(item.Deleted) continue;
-                addItem(item);
+                AddItem(item);
             }
             UpdateColor();
-            maximizeTaskList();
+            MaximizeTaskList();
         }
 
         public void UpdateColor()
@@ -213,59 +211,53 @@ namespace SimpleListsOfCloud
             }
         }
 
-        public ItemUI addItem(ListItem data)
+        public ItemUI AddItem(ListItem data)
         {
-            var listBoxItem = new ItemUI(this);
-            listBoxItem.Tag = (object)data;
+            var listBoxItem = new ItemUI(this) {Tag = data};
             listBoxItem.SetText(data.Name);
-            itemGrid.Children.Add((UIElement)listBoxItem);
-            TransformUtil.setTranslateY((FrameworkElement)listBoxItem, 0);
+            itemGrid.Children.Add(listBoxItem);
+            TransformUtil.setTranslateY(listBoxItem, 0);
 
-            if (data.Mark)
-            {
-                listBoxItem.markComplite.Visibility = Visibility.Visible;
-            }
-            else
-            {
-                listBoxItem.markComplite.Visibility = Visibility.Collapsed;
-            }
-            _itemHeight = listBoxItem.Height;
-            updateItemGridHeight();
-            //moveItemToIdxPosition(listBoxItem, indexOfItem(listBoxItem));
-            sortZIndex();
+            listBoxItem.markComplite.Visibility = data.Mark ? Visibility.Visible : Visibility.Collapsed;
+            itemGrid.UpdateLayout();
+            _itemHeight = listBoxItem.ActualHeight;
+            UpdateItemGridHeight();
+            MoveItemToIdxPosition(listBoxItem, IndexOfItem(listBoxItem));
+            SortZIndex();
             return listBoxItem;
         }
 
-        public ItemUI addItem(string text)
+        public ItemUI AddItem(string text)
         {
-            //var newListItem = currItem.Add();
 
-            ItemUI listBoxItem = new ItemUI(this);
-            //listBoxItem.Tag = (object)newListItem;
+            var listBoxItem = new ItemUI(this);
             listBoxItem.SetText("new item");
-            itemGrid.Children.Insert(0,(UIElement)listBoxItem);
-            _itemHeight = listBoxItem.Height;
-            updateItemGridHeight();
-            moveItemToIdxPosition(listBoxItem, indexOfItem(listBoxItem));
-            sortZIndex();
+            TransformUtil.SetScaleY(listBoxItem, 0);
+            itemGrid.Children.Insert(0,listBoxItem);
+            //обновим иначе не получим высоту
+            itemGrid.UpdateLayout();
+            _itemHeight = listBoxItem.ActualHeight;
+            //Debug.WriteLine("add new item with height:{0}",_itemHeight);
+            MoveItemToIdxPosition(listBoxItem, IndexOfItem(listBoxItem));
+            SortZIndex();
             return listBoxItem;
         }
             
 
-        public void minimizedTaskList()
+        public void MinimizedTaskList()
         {
             _minimizedCount = itemGrid.Children.Count;
             if (_minimizedCount == 0)
             {
-                fill();
+                AnimationUtil.opacity(itemGrid, 0.0, 200, CallbackMinimized);
+                //Fill();                
             }
             else
             {
+                AnimationUtil.opacity(itemGrid, 0.0, 200, null);
 
-                AnimationUtil.opacity((FrameworkElement) itemGrid, 0.0, 200, (Action<object, EventArgs>) null);
-
-                for (int idx = 0; idx < itemGrid.Children.Count; ++idx)
-                    AnimationUtil.translateY((FrameworkElement) itemGrid.Children[idx], 0, 100, CallbackMinimized);
+                foreach (UIElement t in itemGrid.Children)
+                    AnimationUtil.translateY((FrameworkElement) t, 0, 100, CallbackMinimized);
             }
         }
 
@@ -274,78 +266,81 @@ namespace SimpleListsOfCloud
             _minimizedCount--;
             if (_minimizedCount <= 0)
             {
-                fill();
+                Fill();
             }
         }
 
-        public void maximizeTaskList()
+        public void MaximizeTaskList()
         {
             //TODO: im many items not work
-            AnimationUtil.opacity((FrameworkElement)itemGrid, 1.0, 200, (Action<object, EventArgs>)null);
+            AnimationUtil.opacity(itemGrid, 1.0, 200, null);
             //this.updateList(taskList);
             for (int idx = 0; idx < itemGrid.Children.Count; ++idx)
-                AnimationUtil.translateY((FrameworkElement)itemGrid.Children[idx], idxToPosition(idx), 100, (Action<object, EventArgs>)null);
+                AnimationUtil.translateY((FrameworkElement)itemGrid.Children[idx], IdxToPosition(idx), 100, null);            
         }
 
         public void onReorderStarted(ItemUI child)
         {
-            if (this.itemGrid.Children.Count <= 1)
+            if (itemGrid.Children.Count <= 1)
                 return;
-            this._isReordering = true;
-            this.enableNativeScrolling(false);
-            this._isManualScrollingEnabled = false;
+            _isReordering = true;
+            EnableNativeScrolling(false);
+            _isManualScrollingEnabled = false;
             child.OnReorderStarted();
         }
 
         public void onReorderCompleted(ItemUI child)
         {
-            this._isReordering = false;
-            this.enableNativeScrolling(true);
-            this._isManualScrollingEnabled = false;
-            this.sortZIndex();
-            AnimationUtil.translateY((FrameworkElement)child, idxToPosition(indexOfItem(child)), 200, (Action<object, EventArgs>)null);
+            _isReordering = false;
+            EnableNativeScrolling(true);
+            _isManualScrollingEnabled = false;
+            SortZIndex();
+            AnimationUtil.translateY(child, IdxToPosition(IndexOfItem(child)), 200, null);
             //поменяем позицию в объекте
             CurrItem.Items.Remove((ListItem) child.Tag);
-            CurrItem.Items.Insert(indexOfItem(child), (ListItem)child.Tag);
+            CurrItem.Items.Insert(IndexOfItem(child), (ListItem)child.Tag);
             child.OnReorderCompleted();
         }
 
         public void onReorderDelta(ItemUI child, double delta)
         {
-            updateDeltaItemPosition(child, delta);
-            checkIfScrollingIsNeeded(child);
+            UpdateDeltaItemPosition(child, delta);
+            CheckIfScrollingIsNeeded(child);
         }
 
-        private void updateDeltaItemPosition(ItemUI item, double delta)
+        private void UpdateDeltaItemPosition(ItemUI item, double delta)
         {
-            int idx = indexOfItem(item);
-            moveDeltaItemWithinBounds(item, delta);
-            int num = positionToIdx(TransformUtil.getTranslateY((FrameworkElement)item));
+            int idx = IndexOfItem(item);
+            MoveDeltaItemWithinBounds(item, delta);
+            int num = PositionToIdx(item);
             if (idx == num)
                 return;
             int index = idx - num < 0 ? idx + 1 : idx - 1;
-            AnimationUtil.translateY((FrameworkElement)itemGrid.Children[index], idxToPosition(idx), 200, (Action<object, EventArgs>)null);
-            swapItemsInList(item, (ItemUI)itemGrid.Children[index]);
+            SwapItemsInList(item, (ItemUI)itemGrid.Children[index]);
+            //Debug.WriteLine("index:{0} idx:{1}",index,idx);
+            itemGrid.UpdateLayout();
+            AnimationUtil.translateY((FrameworkElement)itemGrid.Children[idx], IdxToPosition(idx), 200, null);            
+            
         }
 
-        private void checkIfScrollingIsNeeded(ItemUI item)
+        private void CheckIfScrollingIsNeeded(ItemUI item)
         {
             double num1 = _scrollViewer.RenderSize.Height + _scrollViewer.VerticalOffset * itemGrid.ActualHeight - AutoScrollHitAreaHeight;
             double num2 = AutoScrollHitAreaHeight + _scrollViewer.VerticalOffset * itemGrid.ActualHeight;
             double translateY = TransformUtil.getTranslateY((FrameworkElement)item);
             if (translateY > num1)
             {
-                if (this._isManualScrollingEnabled)
+                if (_isManualScrollingEnabled)
                     return;
-                this._isManualScrollingEnabled = true;
-                this.beginScrollDown(item);
+                _isManualScrollingEnabled = true;
+                BeginScrollDown(item);
             }
             else if (translateY + this._itemHeight < num2)
             {
                 if (this._isManualScrollingEnabled)
                     return;
                 this._isManualScrollingEnabled = true;
-                this.beginScrollUp(item);
+                this.BeginScrollUp(item);
             }
             else
                 this._isManualScrollingEnabled = false;
@@ -355,48 +350,71 @@ namespace SimpleListsOfCloud
         public void onDraggingToDelete()
         {
             _disableTopLevelGesture = true;
-            enableNativeScrolling(false);
+            EnableNativeScrolling(false);
         }
 
         public void onDraggingToDeleteEnded()
         {
             _disableTopLevelGesture = false;
-            enableNativeScrolling(true);
+            EnableNativeScrolling(true);
         }
 
         public void onDeleteItem(ItemUI item)
         {
             ((ListItem) item.Tag).SetDeleted(true);
-            int num = indexOfItem(item);
+            int num = IndexOfItem(item);
             itemGrid.Children.Remove(item);            
-            updateItemGridHeight();
+            UpdateItemGridHeight();
             for (int idx = num; idx < itemGrid.Children.Count; ++idx)
-                AnimationUtil.translateY((FrameworkElement)itemGrid.Children[idx], this.idxToPosition(idx), 100, (Action<object, EventArgs>)null);
-            sortZIndex();
+                AnimationUtil.translateY((FrameworkElement)itemGrid.Children[idx], IdxToPosition(idx), 100, null);
+            SortZIndex();
+        }
+
+        public void UpdateItemGrid(int animSpeed = 100)
+        {
+            //при сортировке не перемещаем
+            if (_isReordering) return;
+
+            //Debug.WriteLine("Update itemGrid");
+            
+            UpdateItemGridHeight();
+            //return;
+            for (int idx = 0; idx < itemGrid.Children.Count; ++idx)
+            {
+                if(animSpeed == 0)
+                {
+                    TransformUtil.setTranslateY((FrameworkElement)itemGrid.Children[idx], IdxToPosition(idx));
+                }
+                else
+                {
+                    AnimationUtil.translateY((FrameworkElement)itemGrid.Children[idx], IdxToPosition(idx), 1, null);    
+                }
+                
+            }
         }
 
         public void onEditText()
         {
             _disableTopLevelGesture = true;
-            enableNativeScrolling(false);
-            enableAllChildrenGesture(false);
+            EnableNativeScrolling(false);
+            EnableAllChildrenGesture(false);
         }
 
         public void onCompletedEditText(ItemUI item)
         {
             _disableTopLevelGesture = false;
-            enableNativeScrolling(true);
-            enableAllChildrenGesture(true);
+            EnableNativeScrolling(true);
+            EnableAllChildrenGesture(true);
         }
 
        
-        private void sortZIndex()
+        private void SortZIndex()
         {
             for (int index = 0; index < itemGrid.Children.Count; ++index)
                 Canvas.SetZIndex((UIElement)itemGrid.Children[index], itemGrid.Children.Count - index);
         }
 
-        private void enableAllChildrenGesture(bool enable)
+        private void EnableAllChildrenGesture(bool enable)
         {
             foreach (ItemUI taskListListBoxItem in itemGrid.Children)
             {
@@ -405,89 +423,129 @@ namespace SimpleListsOfCloud
             }
         }
 
-        private void updateItemGridHeight()
-        {
-            this.itemGrid.Height = (double)itemGrid.Children.Count * this._itemHeight;
+        private void UpdateItemGridHeight()
+        {            
+            itemGrid.Height = itemGrid.Children.Sum(x => ((ItemUI) x).ActualHeight);
+            //Debug.WriteLine("Update itemGrid height: {0}", itemGrid.Height);
+            //itemGrid.Height = (double)itemGrid.Children.Count * this._itemHeight;
         }
 
-        private void beginScrollDown(ItemUI item)
+        private void BeginScrollDown(ItemUI item)
         {
-            if (!this._isManualScrollingEnabled)
+            if (!_isManualScrollingEnabled)
                 return;
-            this._scrollViewer.ScrollToVerticalOffset(this._scrollViewer.VerticalOffset + AutoScrollDelta * (this._scrollViewer.ViewportHeight / this._scrollViewer.RenderSize.Height));
-            this.updateDeltaItemPosition(item, AutoScrollDelta);
-            this.Dispatcher.BeginInvoke((Action)(() => this.beginScrollDown(item)));
+            _scrollViewer.ScrollToVerticalOffset(_scrollViewer.VerticalOffset + AutoScrollDelta * (_scrollViewer.ViewportHeight / _scrollViewer.RenderSize.Height));
+            UpdateDeltaItemPosition(item, AutoScrollDelta);
+            Dispatcher.BeginInvoke(() => BeginScrollDown(item));
         }
 
-        private void beginScrollUp(ItemUI item)
+        private void BeginScrollUp(ItemUI item)
         {
-            if (!this._isManualScrollingEnabled)
+            if (!_isManualScrollingEnabled)
                 return;
-            this._scrollViewer.ScrollToVerticalOffset(this._scrollViewer.VerticalOffset - AutoScrollDelta * (this._scrollViewer.ViewportHeight / this._scrollViewer.RenderSize.Height));
-            this.updateDeltaItemPosition(item, -AutoScrollDelta);
-            this.Dispatcher.BeginInvoke((Action)(() => this.beginScrollUp(item)));
+            _scrollViewer.ScrollToVerticalOffset(_scrollViewer.VerticalOffset - AutoScrollDelta * (_scrollViewer.ViewportHeight / _scrollViewer.RenderSize.Height));
+            UpdateDeltaItemPosition(item, -AutoScrollDelta);
+            Dispatcher.BeginInvoke(() => BeginScrollUp(item));
         }
 
-        private void enableNativeScrolling(bool enable)
+        private void EnableNativeScrolling(bool enable)
         {
             if (enable)
-                this._scrollViewer.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
+                _scrollViewer.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
             else
-                this._scrollViewer.VerticalScrollBarVisibility = ScrollBarVisibility.Disabled;
+                _scrollViewer.VerticalScrollBarVisibility = ScrollBarVisibility.Disabled;
         }
 
-        private int positionToIdx(double y)
+        private int PositionToIdx(ItemUI item)
         {
-            return (int)Math.Floor((y + this._itemHeight / 2.0) / this._itemHeight);
+            //var transform = item.TransformToVisual(itemGrid);
+            //var absolutePosition = transform.TransformBounds(new Rect(0,0,0,0));
+            double y = TransformUtil.getTranslateY(item);
+            var currItemIndex = itemGrid.Children.IndexOf(item);
+
+            double curr = 0.0;
+            for (int index = 0; index < itemGrid.Children.Count; index++)
+            {
+                var child = itemGrid.Children[index] as ItemUI;
+                if (child == null) return currItemIndex;
+
+                if ((index < currItemIndex && (y <= curr + child.ActualHeight / 2)) ||
+                    (index > currItemIndex && (y + item.ActualHeight >= curr + child.ActualHeight / 2)))
+                {
+                    //Debug.WriteLine("index: {0}",index);
+                    return index;
+                }
+                
+
+                curr += child.ActualHeight;
+            }
+
+            //var temp = (int)Math.Floor((y + item.ActualHeight / 2.0) / item.ActualHeight);
+            //Debug.WriteLine("Position {0} TO Idx: {1}",y,temp);
+            return currItemIndex;
         }
 
-        private double idxToPosition(int idx)
+        private double IdxToPosition(int idx)
         {
-            return (double)idx * this._itemHeight;
+            //Debug.WriteLine("idx {0}",idx);
+            double result = 0.0;
+            if (itemGrid.Children != null)
+            {
+                for (int i = 0; i < idx; i++)
+                {
+                    var item = itemGrid.Children[i] as ItemUI;
+                    if (item != null)
+                    {
+                        //Debug.WriteLine("{0}: ActualHeight {1} ScaleY {2}", i, item.ActualHeight, TransformUtil.GetScaleY(item));
+                        result += item.ActualHeight * TransformUtil.GetScaleY(item);
+                    }
+
+                }
+            }
+            //var result = itemGrid.Children.Sum(x => ((ItemUI) x).ActualHeight);
+            //Debug.WriteLine("result {0}",result);
+            return result;
+            //return (double)idx * _itemHeight;
         }
 
-        private void moveItemToIdxPosition(ItemUI item, int idx)
+        private void MoveItemToIdxPosition(ItemUI item, int idx)
         {
-            TransformUtil.setTranslateY((FrameworkElement)item, idxToPosition(idx));
+            TransformUtil.setTranslateY(item, IdxToPosition(idx));
         }
 
-        private void moveDeltaItemWithinBounds(ItemUI item, double delta)
+        private void MoveDeltaItemWithinBounds(ItemUI item, double delta)
         {
             int count = itemGrid.Children.Count;
-            double num = TransformUtil.getTranslateY((FrameworkElement)item) + delta;
+            double num = TransformUtil.getTranslateY(item) + delta;
             if (num < 0.0)
                 num = 0.0;
-            else if (num > this.idxToPosition(count - 1))
-                num = this.idxToPosition(count - 1);
-            TransformUtil.setTranslateY((FrameworkElement)item, num);
+            else if (num > IdxToPosition(count - 1))
+                num = IdxToPosition(count - 1);
+            TransformUtil.setTranslateY(item, num);
         }
 
-        private int indexOfItem(ItemUI item)
+        private int IndexOfItem(ItemUI item)
         {
             return itemGrid.Children.IndexOf(item);
         }
 
-        private void swapItemsInList(ItemUI a, ItemUI b)
+        private void SwapItemsInList(ItemUI a, ItemUI b)
         {
-            //return;
-            int index1 = indexOfItem(a);
-            int index2 = indexOfItem(b);
-            //itemGrid.Children.Insert(index1, b);
-            //itemGrid.Children.Remove(a);
-            //itemGrid.Children.Remove(b);
+            int index1 = IndexOfItem(a);
+            int index2 = IndexOfItem(b);
             itemGrid.Children[index1] = new ItemUI();
-            itemGrid.Children[index2] = new ItemUI();
-            itemGrid.Children[index1] = b;
             itemGrid.Children[index2] = a;
+            itemGrid.Children[index1] = b;
+            
         }
 
-        public void onUncompleteItem(ItemUI item)
+        public void OnUncompleteItem(ItemUI item)
         {
             ((ListItem) item.Tag).SetMark(false);
             item.Update();
         }
 
-        public void onCompleteItem(ItemUI item)
+        public void OnCompleteItem(ItemUI item)
         {
             if (item.Tag != null)
             {

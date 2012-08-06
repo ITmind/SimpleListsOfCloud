@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO.IsolatedStorage;
 using System.Linq;
 using System.Net;
 using System.Windows;
@@ -13,6 +14,7 @@ using System.Windows.Shapes;
 using Microsoft.Phone.Controls;
 using Microsoft.Phone.Shell;
 using Microsoft.Live;
+using Mogade.WindowsPhone;
 
 namespace SimpleListsOfCloud
 {
@@ -26,6 +28,17 @@ namespace SimpleListsOfCloud
         public LiveConnectSession LiveSession { get; set; }
         public ItemsList ListItems { get; set; }
         public SkyDriveFolders SkyDriveFolders { get; set; }
+        public IMogadeClient Mogade { get; private set; }
+        SettingsData settingsData;
+
+        public SettingsData Settings
+        {
+            get { return settingsData; }
+            set
+            {
+                settingsData = value;
+            }
+        }
 
         public static new App Current
         {
@@ -75,6 +88,17 @@ namespace SimpleListsOfCloud
         private void Application_Launching(object sender, LaunchingEventArgs e)
         {
             ListItems.Load();
+            IsolatedStorageSettings iss = IsolatedStorageSettings.ApplicationSettings;
+            if (!iss.TryGetValue("Settings", out settingsData))
+            {
+                Settings = new SettingsData();
+            }
+
+
+            Mogade = MogadeHelper.CreateInstance();
+#if !DEBUG
+            Mogade.LogApplicationStart();
+#endif
         }
 
         // Код для выполнения при активации приложения (переводится в основной режим)
@@ -82,6 +106,28 @@ namespace SimpleListsOfCloud
         private void Application_Activated(object sender, ActivatedEventArgs e)
         {
             ListItems.Load();
+            if (e.IsApplicationInstancePreserved)
+            {
+                return;
+            }
+
+            IsolatedStorageSettings iss = IsolatedStorageSettings.ApplicationSettings;
+            if (PhoneApplicationService.Current.State.ContainsKey("Settings"))
+            {
+                Settings = PhoneApplicationService.Current.State["Settings"] as SettingsData;
+            }
+            else
+            {
+                if (!iss.TryGetValue("Settings", out settingsData))
+                {
+                    Settings = new SettingsData();
+                }
+            }
+
+            Mogade = MogadeHelper.CreateInstance();
+#if !DEBUG
+            Mogade.LogApplicationStart();
+#endif
         }
 
         // Код для выполнения при деактивации приложения (отправляется в фоновый режим)
@@ -89,6 +135,8 @@ namespace SimpleListsOfCloud
         private void Application_Deactivated(object sender, DeactivatedEventArgs e)
         {
             ListItems.Save();
+            PhoneApplicationService.Current.State["Settings"] = Settings;
+            SaveStateToIsolatedStorage();
         }
 
         // Код для выполнения при закрытии приложения (например, при нажатии пользователем кнопки "Назад")
@@ -96,8 +144,22 @@ namespace SimpleListsOfCloud
         private void Application_Closing(object sender, ClosingEventArgs e)
         {
             ListItems.Save();
+            SaveStateToIsolatedStorage();
         }
 
+        public void SaveStateToIsolatedStorage()
+        {
+            IsolatedStorageSettings iss = IsolatedStorageSettings.ApplicationSettings;
+            if (!iss.Contains("Settings"))
+            {
+                iss.Add("Settings", Settings);
+            }
+            else
+            {
+                iss["Settings"] = Settings;
+            }
+
+        }
         // Код для выполнения в случае ошибки навигации
         private void RootFrame_NavigationFailed(object sender, NavigationFailedEventArgs e)
         {

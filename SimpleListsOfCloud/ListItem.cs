@@ -2,6 +2,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
+using Microsoft.Phone.Scheduler;
 using SimpleListsOfCloud.Utils;
 
 namespace SimpleListsOfCloud
@@ -19,7 +20,17 @@ namespace SimpleListsOfCloud
         public DateTime LastSyncTime { get; set; }
         public bool Deleted { get; set; }
         public bool Mark { get; set; }
+        public string ReminderName { get; set; }
         public ObservableCollection<ListItem> Items { get; set; }
+        public ScheduledAction Reminder
+        {
+            get
+            {
+                if (!String.IsNullOrWhiteSpace(ReminderName)) 
+                    return ScheduledActionService.Find(ReminderName);
+                return null;
+            }
+        }
 
         public delegate void ListItemEventHandler(object sender, ListItemEventArgs e);
 

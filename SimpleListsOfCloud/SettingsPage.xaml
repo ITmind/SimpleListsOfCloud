@@ -9,13 +9,106 @@
     xmlns:st="clr-namespace:Microsoft.Phone.Controls;assembly=Microsoft.Phone.Controls.Toolkit"
     xmlns:sys="clr-namespace:System;assembly=mscorlib" FontFamily="{StaticResource PhoneFontFamilyNormal}"
     FontSize="{StaticResource PhoneFontSizeNormal}"
-    Foreground="{StaticResource PhoneForegroundBrush}"
+    Foreground="White"
     SupportedOrientations="Portrait" Orientation="Portrait"
-    mc:Ignorable="d" d:DesignHeight="768" d:DesignWidth="480"
-    shell:SystemTray.IsVisible="True">
+    mc:Ignorable="d" d:DesignHeight="800" d:DesignWidth="480"
+    shell:SystemTray.IsVisible="False">
 
+    <phone:PhoneApplicationPage.Resources>
+        <Style TargetType="st:ListPicker">
+            <Setter Property="Background" Value="#BFFFFFFF"/>
+            <Setter Property="Foreground" Value="White"/>            
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="st:ListPicker">
+                        <StackPanel>
+                            <VisualStateManager.VisualStateGroups>
+                                <VisualStateGroup x:Name="PickerStates">
+                                    <VisualState x:Name="Normal"/>
+                                    <VisualState x:Name="Expanded">
+                                        <Storyboard>
+                                            <ObjectAnimationUsingKeyFrames 
+                                        Storyboard.TargetName="Border" 
+                                        Storyboard.TargetProperty="Background" 
+                                        Duration="0">
+                                                <DiscreteObjectKeyFrame 
+                                            Value="#BFFFFFFF" 
+                                            KeyTime="0"/>
+                                            </ObjectAnimationUsingKeyFrames>
+                                            <ObjectAnimationUsingKeyFrames 
+                                        Storyboard.TargetName="Border" 
+                                        Storyboard.TargetProperty="BorderBrush" 
+                                        Duration="0">
+                                                <DiscreteObjectKeyFrame 
+                                            Value="#BFFFFFFF" 
+                                            KeyTime="0"/>
+                                            </ObjectAnimationUsingKeyFrames>
+                                        </Storyboard>
+                                    </VisualState>
+                                </VisualStateGroup>
+                            </VisualStateManager.VisualStateGroups>
+                            <ContentControl 
+                        Content="{TemplateBinding Header}" 
+                        ContentTemplate="{TemplateBinding HeaderTemplate}" 
+                        Foreground="Black" 
+                        FontSize="{StaticResource PhoneFontSizeNormal}" 
+                        HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" 
+                        Margin="0 0 0 8"/>
+                            <Grid>
+                                <Border 
+                            x:Name="Border" 
+                            Background="{TemplateBinding Background}" 
+                            BorderBrush="{TemplateBinding Background}" 
+                            BorderThickness="2">
+                                    <Canvas x:Name="ItemsPresenterHost" MinHeight="46">
+                                        <ItemsPresenter x:Name="ItemsPresenter">
+                                            <ItemsPresenter.RenderTransform>
+                                                <TranslateTransform x:Name="ItemsPresenterTranslateTransform"/>
+                                            </ItemsPresenter.RenderTransform>
+                                        </ItemsPresenter>
+                                    </Canvas>
+                                </Border>
+                                <Popup x:Name="FullModePopup">
+                                    <Border Background="{StaticResource PhoneChromeBrush}">
+                                        <!-- Popup.Child should always be a Border -->
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition/>
+                                            </Grid.RowDefinitions>
+                                            <ContentControl 
+                                        Grid.Row="0" 
+                                        Content="{TemplateBinding FullModeHeader}" 
+                                        Foreground="{StaticResource PhoneForegroundBrush}" 
+                                        FontFamily="{StaticResource PhoneFontFamilySemiBold}" 
+                                        FontSize="{StaticResource PhoneFontSizeMedium}" 
+                                        HorizontalAlignment="Left" 
+                                        Margin="24 12 0 0"/>
+                                            <ListBox 
+                                        x:Name="FullModeSelector" 
+                                        Grid.Row="1" 
+                                         
+                                        FontSize="{TemplateBinding FontSize}" 
+                                        Margin="{StaticResource PhoneMargin}">
+                                                <ListBox.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <StackPanel/>
+                                                        <!-- Ensures all containers will be available during the Loaded event -->
+                                                    </ItemsPanelTemplate>
+                                                </ListBox.ItemsPanel>
+                                            </ListBox>
+                                        </Grid>
+                                    </Border>
+                                </Popup>
+                            </Grid>
+                        </StackPanel>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </phone:PhoneApplicationPage.Resources>
     <!--LayoutRoot представляет корневую сетку, где размещается все содержимое страницы-->
-    <Grid x:Name="LayoutRoot" Background="Transparent">
+    <Grid x:Name="LayoutRoot" Background="Black">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
@@ -23,16 +116,22 @@
 
         <!--TitlePanel содержит имя приложения и заголовок страницы-->
         <StackPanel x:Name="TitlePanel" Grid.Row="0" Margin="12,0,0,28">            
-            <TextBlock x:Name="PageTitle" Text="Settings" Margin="9,0,0,0" Style="{StaticResource PhoneTextTitle1Style}"/>
+            <TextBlock x:Name="PageTitle" Text="Settings" Margin="9,0,0,0" 
+                       Style="{StaticResource PhoneTextTitle1Style}"
+                       Foreground="White"/>
         </StackPanel>
 
         <!--ContentPanel – поместите здесь дополнительное содержимое-->
         <Grid x:Name="ContentPanel" Grid.Row="1" Margin="12,0,12,0">
             <StackPanel>
-                <TextBlock Text="Show number task:" Margin="12,0,0,0"/>
-                <st:ListPicker Name="lpShowNumTask" SelectionChanged="ShowNumTask_SelectionChanged">
+                <TextBlock Text="Show number task:" Margin="12,0,0,0" Foreground="White"/>
+                <st:ListPicker Name="lpShowNumTask" SelectionChanged="ShowNumTask_SelectionChanged"
+                               Foreground="Black" Background="#BFFFFFFF" BorderBrush="#BFFFFFFF">
                     <st:ListPicker.HeaderTemplate>
                         <DataTemplate>
+                            <StackPanel Background="Red">
+                                <TextBlock Text="{Binding}"/>
+                            </StackPanel>
                         </DataTemplate>
                     </st:ListPicker.HeaderTemplate>
                     <sys:String>None</sys:String>

@@ -61,6 +61,7 @@
             <shell:ApplicationBar.MenuItems>
                 <shell:ApplicationBarMenuItem Text="Sort" Click="ApplicationBarMenuItem_Click" />
                 <shell:ApplicationBarMenuItem Text="Settings" x:Name="btnSettings" Click="btnSettings_Click" />
+                <shell:ApplicationBarMenuItem Text="About" x:Name="btnAbout" Click="btnAbout_Click" />
             </shell:ApplicationBar.MenuItems>
         </shell:ApplicationBar>
     </phone:PhoneApplicationPage.ApplicationBar>

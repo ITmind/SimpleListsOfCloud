@@ -9,51 +9,67 @@
     xmlns:es="clr-namespace:Microsoft.Expression.Shapes;assembly=Microsoft.Expression.Drawing" 
     xmlns:edc="clr-namespace:Microsoft.Expression.Controls;assembly=Microsoft.Expression.Drawing" 
     xmlns:em="clr-namespace:Microsoft.Expression.Media;assembly=Microsoft.Expression.Drawing"
+    xmlns:ms="clr-namespace:Microsoft.Phone.Controls;assembly=Microsoft.Phone.Controls"
     FontFamily="{StaticResource PhoneFontFamilyNormal}"
     FontSize="{StaticResource PhoneFontSizeNormal}"
-    Foreground="{StaticResource PhoneForegroundBrush}"
+    Foreground="White"
     SupportedOrientations="Portrait" Orientation="Portrait"
-    mc:Ignorable="d" d:DesignHeight="768" d:DesignWidth="480"
-    shell:SystemTray.IsVisible="True">
+    mc:Ignorable="d" d:DesignHeight="800" d:DesignWidth="480"
+    shell:SystemTray.IsVisible="False">
 
-    <Grid x:Name="LayoutRoot" Background="Transparent" Margin="0">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
+        <ms:Pivot Title="Help" Background="Black" Foreground="White">
+            <ms:PivotItem Header="Swipe">
+                <Grid Margin="12,0,12,0" Height="300">
+                    <Border BorderBrush="Black" BorderThickness="1" Margin="129,88,137,0" Background="#FF00C1FF" Height="63" VerticalAlignment="Top">
+                        <TextBlock TextWrapping="Wrap" Text="List item" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <es:BlockArrow Fill="#FFF4F4F5" Margin="192,158.668,200,0" Orientation="Down" Stroke="Black" UseLayoutRounding="False" Height="65" VerticalAlignment="Top"/>
+                    <es:BlockArrow Fill="#FFF4F4F5" HorizontalAlignment="Left" Height="63" Margin="51,86.668,0,0" Orientation="Left" Stroke="Black" UseLayoutRounding="False" VerticalAlignment="Top" Width="66"/>
+                    <es:BlockArrow Fill="#FFF4F4F5" HorizontalAlignment="Right" Height="63" Margin="0,86.668,56,0" Orientation="Right" Stroke="Black" UseLayoutRounding="False" VerticalAlignment="Top" Width="70"/>
+                    <Image HorizontalAlignment="Left" Height="48" Margin="9,95,0,0" Source="Images\appbar.delete.png" Stretch="Fill" VerticalAlignment="Top" Width="48"/>
+                    <Image HorizontalAlignment="Right" Margin="0,96,12,0" Source="Images\appbar.check.png" Stretch="Fill" Width="48" Height="48" VerticalAlignment="Top"/>
+                    <Image Height="48" Margin="190,221,200,0" Source="Images\appbar.add.png" Stretch="Fill" VerticalAlignment="Top"/>                    
+                </Grid>
+            </ms:PivotItem>
+            <ms:PivotItem Header="Sort">
+                <Grid Margin="12,0,12,0">                                       
+                    <Border BorderBrush="Black" BorderThickness="1" Height="60" Margin="129,220,137,349" Background="#FF00C1FF">
+                        <TextBlock TextWrapping="Wrap" Text="List item 1" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <Border BorderBrush="Black" BorderThickness="1" Margin="115,0,123,271" Background="#FF00C1FF" Height="77" VerticalAlignment="Bottom">
+                        <TextBlock TextWrapping="Wrap" Text="List item 2" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <Border BorderBrush="Black" BorderThickness="1" Margin="129,0,137,200" Background="#FF00C1FF" Height="63" VerticalAlignment="Bottom">
+                        <TextBlock TextWrapping="Wrap" Text="List item 3" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <TextBlock Margin="166,162,166,0" TextWrapping="Wrap" Text="HOLD" HorizontalAlignment="Center" FontSize="32" Width="101" Height="43" VerticalAlignment="Top"/>
+                    <Image Height="48" Margin="115,0,0,285" Source="Images\appbar.basecircle.png" Stretch="Fill" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="48"/>
+                    <edc:LineArrow Fill="#FFF4F4F5" HorizontalAlignment="Right" Height="100" Margin="0,240,110,299" Stroke="White" Width="12" RenderTransformOrigin="0.5,0.5">
+                        <edc:LineArrow.RenderTransform>
+                            <CompositeTransform ScaleY="-1"/>
+                        </edc:LineArrow.RenderTransform>
+                    </edc:LineArrow>
+                    <edc:LineArrow Fill="#FFF4F4F5" HorizontalAlignment="Right" Margin="0,0,111,209" Stroke="White" Width="11" RenderTransformOrigin="0.5,0.5" Height="95" VerticalAlignment="Bottom"/>
+                    <TextBlock Margin="0,0,14,285" TextWrapping="Wrap" Text="SORT" HorizontalAlignment="Right" FontSize="32" Width="77" Height="43" VerticalAlignment="Bottom"/>
+                <TextBlock Text="For auto sort tap Sort in application bar" Margin="50,500,0,0"/>
+            </Grid>
+            </ms:PivotItem>
+        <ms:PivotItem Header="Reminder">
+            <Grid Margin="12,0,12,0">                
+                <Border BorderBrush="Black" BorderThickness="1" Margin="115,0,100,271" Background="#FF00C1FF" Height="77" VerticalAlignment="Bottom">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock TextWrapping="Wrap" Text="ITEM" Margin="10,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <Image Source="/SimpleListsOfCloud;component/Images/AlarmIcon.png" Stretch="None" Margin="100,0,0,0" />
+                    </StackPanel>                    
+                </Border>                
+                <Image Height="48" Margin="115,0,0,285" Source="Images\appbar.basecircle.png" Stretch="Fill" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="48"/>
+                <TextBlock Text="Double tap on item name or alarm icon" Margin="50,230,0,0"/>
+                
+            </Grid>
+        </ms:PivotItem>
 
+    </ms:Pivot>
         <!--ContentPanel - place additional content here-->
-        <Grid x:Name="ContentPanel" Grid.Row="1" Margin="12,0,12,0">
-            <Border BorderBrush="Black" BorderThickness="1" Margin="129,88,137,0" Background="#FF00C1FF" Height="63" VerticalAlignment="Top">
-                <TextBlock TextWrapping="Wrap" Text="List item" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            </Border>
-            <es:BlockArrow Fill="#FFF4F4F5" Margin="192,158.668,200,0" Orientation="Down" Stroke="Black" UseLayoutRounding="False" Height="65" VerticalAlignment="Top"/>
-            <es:BlockArrow Fill="#FFF4F4F5" HorizontalAlignment="Left" Height="63" Margin="51,86.668,0,0" Orientation="Left" Stroke="Black" UseLayoutRounding="False" VerticalAlignment="Top" Width="66"/>
-            <es:BlockArrow Fill="#FFF4F4F5" HorizontalAlignment="Right" Height="63" Margin="0,86.668,56,0" Orientation="Right" Stroke="Black" UseLayoutRounding="False" VerticalAlignment="Top" Width="70"/>
-            <Image HorizontalAlignment="Left" Height="48" Margin="9,95,0,0" Source="Images\appbar.delete.png" Stretch="Fill" VerticalAlignment="Top" Width="48"/>
-            <Image HorizontalAlignment="Right" Margin="0,96,12,0" Source="Images\appbar.check.png" Stretch="Fill" Width="48" Height="48" VerticalAlignment="Top"/>
-            <Image Height="48" Margin="200,221,208,0" Source="Images\appbar.add.png" Stretch="Fill" VerticalAlignment="Top"/>
-            <TextBlock Margin="0,31,0,0" TextWrapping="Wrap" Text="SWIPE" HorizontalAlignment="Center" FontSize="32" Width="101" Height="43" VerticalAlignment="Top"/>
-            <Border BorderBrush="Black" BorderThickness="1" Margin="129,356,137,349" Background="#FF00C1FF">
-                <TextBlock TextWrapping="Wrap" Text="List item 1" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            </Border>
-            <Border BorderBrush="Black" BorderThickness="1" Margin="115,0,123,267" Background="#FF00C1FF" Height="77" VerticalAlignment="Bottom">
-                <TextBlock TextWrapping="Wrap" Text="List item 2" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            </Border>
-            <Border BorderBrush="Black" BorderThickness="1" Margin="129,0,137,200" Background="#FF00C1FF" Height="63" VerticalAlignment="Bottom">
-                <TextBlock TextWrapping="Wrap" Text="List item 3" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            </Border>
-            <TextBlock Margin="0,300,0,0" TextWrapping="Wrap" Text="HOLD" HorizontalAlignment="Center" FontSize="32" Width="101" Height="43" VerticalAlignment="Top"/>
-            <Image Height="48" Margin="115,0,0,285" Source="Images\appbar.basecircle.png" Stretch="Fill" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="48"/>
-            <edc:LineArrow Fill="#FFF4F4F5" HorizontalAlignment="Right" Margin="0,369,110,304" Stroke="White" Width="12" RenderTransformOrigin="0.5,0.5">
-                <edc:LineArrow.RenderTransform>
-                    <CompositeTransform ScaleY="-1"/>
-                </edc:LineArrow.RenderTransform>
-            </edc:LineArrow>
-            <edc:LineArrow Fill="#FFF4F4F5" HorizontalAlignment="Right" Margin="0,0,111,209" Stroke="White" Width="11" RenderTransformOrigin="0.5,0.5" Height="95" VerticalAlignment="Bottom"/>
-            <TextBlock Margin="0,0,14,285" TextWrapping="Wrap" Text="SORT" HorizontalAlignment="Right" FontSize="32" Width="77" Height="43" VerticalAlignment="Bottom"/>
-        </Grid>
-    </Grid>
 
     <!--Пример кода, иллюстрирующий использование ApplicationBar-->
     <!--<phone:PhoneApplicationPage.ApplicationBar>

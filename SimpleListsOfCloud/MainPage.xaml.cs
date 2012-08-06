@@ -265,12 +265,8 @@ namespace SimpleListsOfCloud
 
         protected override void OnNavigatedTo(System.Windows.Navigation.NavigationEventArgs e)
         {
-            if (e.NavigationMode == NavigationMode.Back)
-            {
-                var thisback = true;
-            }
-            else
-            {
+            if (e.NavigationMode != NavigationMode.Back)
+            {                
                 backgroundLogin.RunWorkerAsync();
                 syncAnim.Interval = new TimeSpan(0, 0, 0, 0, 100);
                 syncAnim.Tick += SyncAnimTick;

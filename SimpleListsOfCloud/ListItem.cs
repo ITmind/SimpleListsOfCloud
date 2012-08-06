@@ -184,7 +184,7 @@ namespace SimpleListsOfCloud
         /// </summary>
         public void Sort()
         {
-            Items = new ObservableCollection<ListItem>(Items.OrderByDescending(x => x.Items.Count).ThenBy(x => x.Name).ToList());
+            Items = new ObservableCollection<ListItem>(Items.OrderByDescending(x => !x.Mark).ThenBy(x => x.Items.Count).ThenBy(x => x.Name).ToList());
             foreach (var item in Items)
             {
                 item.Sort();
@@ -211,6 +211,7 @@ namespace SimpleListsOfCloud
         {
             Deleted = deleted;
             ModifyTime = DateTime.Now;
+            Mark = !Deleted;
             //UpdateViews();
         }
 

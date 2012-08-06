@@ -84,12 +84,15 @@ namespace SimpleListsOfCloud
             get
             {
                 var result = Visibility.Collapsed;
-                var reminder = ((ListItem) Tag).Reminder;
-                if (Tag != null &&  reminder!=null)
+                if (Tag != null)
                 {
-                    if (reminder.IsScheduled)
+                    var reminder = ((ListItem) Tag).Reminder;
+                    if (Tag != null && reminder != null)
                     {
-                        result = Visibility.Visible;
+                        if (reminder.IsScheduled)
+                        {
+                            result = Visibility.Visible;
+                        }
                     }
                 }
                 return result;

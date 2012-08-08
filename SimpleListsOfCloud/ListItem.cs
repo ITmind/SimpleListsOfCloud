@@ -1,5 +1,6 @@
 using System;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Windows;
 using Microsoft.Phone.Scheduler;
@@ -13,13 +14,33 @@ namespace SimpleListsOfCloud
         public ListItem Item { get; private set; } // readonly
     }
 
-    public class ListItem
+    public class ListItem: INotifyPropertyChanged
     {
-        public string Name { get; set; }
+        private bool _mark;
+        private string _name;
+
+        public string Name
+        {
+            get { return _name; }
+            set
+            {
+                _name = value;
+                OnPropertyChanged("Name");
+            }
+        }
+
         public DateTime ModifyTime { get; set; }
         public DateTime LastSyncTime { get; set; }
         public bool Deleted { get; set; }
-        public bool Mark { get; set; }
+        public bool Mark
+        {
+            get { return _mark; }
+            set
+            {
+                _mark = value;
+                OnPropertyChanged("VisiblityMark");
+            }
+        }
         public string ReminderName { get; set; }
         public ObservableCollection<ListItem> Items { get; set; }
         public ScheduledAction Reminder
@@ -29,6 +50,72 @@ namespace SimpleListsOfCloud
                 if (!String.IsNullOrWhiteSpace(ReminderName)) 
                     return ScheduledActionService.Find(ReminderName);
                 return null;
+            }
+        }
+
+        public string NumItems
+        {
+            get
+            {
+                string result = "0";
+
+                if (App.Current.Settings.ShowNumTask == ShowNumTaskEnum.All)
+                {
+                    result = Items.Count(x => !x.Deleted).ToString();
+                }
+                else
+                {
+                    result = Items.Count(x => !x.Deleted && !x.Mark).ToString();
+                }
+
+                return result;
+            }
+        }
+
+        public Visibility VisiblityNumTask
+        {
+            get
+            {
+                var result = Visibility.Collapsed;
+                if (Items.Count > 0)
+                {
+                    if (App.Current.Settings.ShowNumTask != ShowNumTaskEnum.None)
+                    {                        
+                        result = Visibility.Visible;
+                    }
+                }
+                return result;
+            }
+        }
+
+        public Visibility VisiblityMark
+        {
+            get
+            {
+                var result = Visibility.Collapsed;
+                if (Mark)
+                {
+                    result = Visibility.Visible;               
+                }
+                return result;
+            }
+        }
+
+        public Visibility VisiblityAlarm
+        {
+            get
+            {
+                var result = Visibility.Collapsed;
+                var reminder = Reminder;
+                if (reminder != null)
+                {
+                    if (reminder.IsScheduled)
+                    {
+                        result = Visibility.Visible;
+                    }
+                }
+
+                return result;
             }
         }
 
@@ -128,6 +215,14 @@ namespace SimpleListsOfCloud
             //}
         }
 
+        public void Delete(int index)
+        {
+            if (Items == null || Items.Count == 0) return;
+
+            Items.RemoveAt(index);
+            //OnDeleteItem(new ListItemEventArgs(itemForDelete));
+        }
+
         /// <summary>
         /// add "new"
         /// </summary>
@@ -144,7 +239,7 @@ namespace SimpleListsOfCloud
             return Add(name);
         }
 
-        public ListItem Add(string name, bool isSync = false)
+        public ListItem Add(string name, bool addInEnd = false)
         {
             if(CommonUtil.IsTrial() && Items.Count>=3)
             {
@@ -156,7 +251,15 @@ namespace SimpleListsOfCloud
             {
                 var newItem = new ListItem {Name = name, Mark = false};
                 //newItem.Parent = this;
-                Items.Insert(0, newItem);
+                if (addInEnd)
+                {
+                    Items.Add(newItem);
+                }
+                else
+                {
+                    Items.Insert(0, newItem);    
+                }
+                
                 OnAddItem(new ListItemEventArgs(newItem));
                 return newItem;
             }
@@ -221,6 +324,12 @@ namespace SimpleListsOfCloud
             Mark = mark;
         }
 
+        public void SetNewName(string name)
+        {
+            ModifyTime = DateTime.Now;
+            Name = name;
+        }
+
         public void SetLastSyncTime(DateTime time)
         {
             LastSyncTime = time;
@@ -273,6 +382,14 @@ namespace SimpleListsOfCloud
             {
                 item.DeleteDeletedItems();
             }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            PropertyChangedEventHandler handler = PropertyChanged;
+            if (handler != null) handler(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

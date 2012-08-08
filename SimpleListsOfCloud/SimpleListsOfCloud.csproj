@@ -112,6 +112,12 @@
       <DependentUpon>HelpPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="ItemsList.cs" />
+    <Compile Include="ItemsListUIControl\FastItemContol.xaml.cs">
+      <DependentUpon>FastItemContol.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ItemsListUIControl\FastListItem.xaml.cs">
+      <DependentUpon>FastListItem.xaml</DependentUpon>
+    </Compile>
     <Compile Include="ItemsListUIControl\ItemListUI.xaml.cs">
       <DependentUpon>ItemListUI.xaml</DependentUpon>
     </Compile>
@@ -150,6 +156,14 @@
       <SubType>Designer</SubType>
     </Content>
     <Page Include="HelpPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ItemsListUIControl\FastItemContol.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ItemsListUIControl\FastListItem.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

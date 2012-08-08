@@ -8,6 +8,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"    
     xmlns:toolkit="clr-namespace:Microsoft.Phone.Controls;assembly=Microsoft.Phone.Controls.Toolkit"
     xmlns:local="clr-namespace:SimpleListsOfCloud"
+    xmlns:fc ="clr-namespace:SimpleListsOfCloud.ItemsListUIControl"
     mc:Ignorable="d" d:DesignWidth="480" d:DesignHeight="728"
     FontFamily="{StaticResource PhoneFontFamilyNormal}"
     FontSize="{StaticResource PhoneFontSizeNormal}"
@@ -48,6 +49,9 @@
             
             <local:ItemListUI x:Name="tasklist_listbox" Width="480"/>
             
+            <!--
+            <fc:FastListItem x:Name="tasklist_listbox" Width="480"/>
+            -->
 
         </Grid>
 

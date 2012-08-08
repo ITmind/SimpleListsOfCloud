@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Windows;
 using System.Windows.Controls;
@@ -41,6 +42,9 @@ namespace SimpleListsOfCloud
 
         public void Start(IEnumerable<object> files)
         {
+            var loadedItems = new List<ListItem>(10);
+            var forDelete = new List<ListItem>(10);
+
             foreach (IDictionary<string, object> content in files)
             {
                 var filename = (string)content["name"];
@@ -58,7 +62,7 @@ namespace SimpleListsOfCloud
                     if (newGroup.ModifyTime < updateTime)
                     {
                         _downloadCounter++;
-                        _client.DownloadAsync(String.Format("{0}/content", (string)content["id"]), newGroup);
+                        _client.DownloadAsync(String.Format("{0}/content", (string)content["id"]), newGroup);                        
                     }                
                 }
                 else
@@ -69,7 +73,14 @@ namespace SimpleListsOfCloud
                     _client.DownloadAsync(String.Format("{0}/content", (string)content["id"]), newGroup);
                 }
 
+                loadedItems.Add(newGroup);
+            }
 
+            forDelete.AddRange(_cache.Items.Where(item => !loadedItems.Contains(item) && item.ModifyTime <= item.LastSyncTime));
+
+            foreach (var item in forDelete)
+            {
+                _cache.Delete(item);
             }
 
             _downloadCounter++;
@@ -80,6 +91,9 @@ namespace SimpleListsOfCloud
         {
             if (e.Result != null)
             {
+                var loadedItems = new List<ListItem>(10);
+                var forDelete = new List<ListItem>(10);
+
                 var parrentItem = (ListItem)e.UserState;
                 //parrentItem.Items.Clear();
                 var sr = new StreamReader(e.Result);
@@ -108,8 +122,17 @@ namespace SimpleListsOfCloud
 
                     var item = parrentItem.FindItem(task, false) ?? parrentItem.Add(task, true);
                     item.Mark = childMark;
+                    loadedItems.Add(item);
 
                 }
+
+                forDelete.AddRange(parrentItem.Items.Where(item => !loadedItems.Contains(item) && item.ModifyTime <= item.LastSyncTime));
+                
+                foreach (var item in forDelete)
+                {
+                    parrentItem.Delete(item);
+                }
+
                 parrentItem.Mark = parrentItem.Items.Count > 0 && isMark;
             }
             else if(e.Error!=null)

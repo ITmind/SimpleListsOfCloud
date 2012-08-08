@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Net;
 using System.Windows;
@@ -45,6 +46,7 @@ namespace SimpleListsOfCloud
         private ItemUI _newItem;
         public ListItem CurrItem;
         private int _minimizedCount = 0;
+        readonly BackgroundWorker _backgroundAdd = new BackgroundWorker();
 
 
 
@@ -52,6 +54,24 @@ namespace SimpleListsOfCloud
         {
             InitializeComponent();
             this.Loaded += (RoutedEventHandler)((s, e) => _scrollViewer = UiUtil.FindChildOfType<ScrollViewer>((DependencyObject)listbox));
+            _backgroundAdd.DoWork += BackgroundAddDoWork;
+        }
+
+        void BackgroundAddDoWork(object sender, DoWorkEventArgs e)
+        {
+            for (int i = 11; i < CurrItem.Items.Count; i++)
+            {
+                int i1 = i;
+                Dispatcher.BeginInvoke(() =>
+                                           {
+                                               if (!CurrItem.Items[i1].Deleted)
+                                               {
+                                                   AddItem(CurrItem.Items[i1]);
+                                               }
+                                               itemGrid.UpdateLayout();
+                                           });
+
+            }
         }
 
         #region Gestures
@@ -193,13 +213,27 @@ namespace SimpleListsOfCloud
 
         void Fill()
         {
+            //TODO: загружаем сразу 10 элементов, остальноые в фоне
+            Stopwatch stopwatch = Stopwatch.StartNew();
             itemGrid.Children.Clear();
+            int numloaded = 0;
             foreach (var item in CurrItem.Items)
             {
-                if(item.Deleted) continue;
+                if(item.Deleted) continue;                
                 AddItem(item);
+                numloaded++;
+                if(numloaded>=10) break;
             }
+
+            if (CurrItem.Items.Count > numloaded)
+            {
+                //start background fill
+                _backgroundAdd.RunWorkerAsync();
+            }
+
             UpdateColor();
+            stopwatch.Stop();
+            Debug.WriteLine("fill time: {0}",stopwatch.ElapsedMilliseconds);
             MaximizeTaskList();
         }
 

@@ -102,29 +102,39 @@ namespace SimpleListsOfCloud
 
         void SyncWithCache(ListItem cache)
         {
-            var syncItem = new List<ListItem>(40);
+            var syncItem = new List<ListItem>(10);
+            var forDelete = new List<ListItem>(10);
 
             foreach (var item in StartNode.Items)
             {
                 ListItem cacheItem = cache.FindItem(item.Name);
-                if(cacheItem == null) continue;
-                syncItem.Add(cacheItem);
-
-                if(item.ModifyTime < item.LastSyncTime)
-                {                    
-                    item.FillFrom(cacheItem);                    
+                if (cacheItem == null)
+                {
+                    if (item.ModifyTime < item.LastSyncTime)
+                    {
+                        forDelete.Add(item);
+                    }
                 }
                 else
                 {
-                    //проверим все подчиненные
-                    foreach (var listItem in item.Items)
-                    {
-                        if (listItem.ModifyTime < listItem.LastSyncTime)
-                        {
-                            cacheItem = cacheItem.FindItem(listItem.Name);
-                            if (cacheItem == null) continue;
+                    syncItem.Add(cacheItem);
 
-                            item.FillFrom(cacheItem);
+                    if (item.ModifyTime < item.LastSyncTime)
+                    {
+                        item.FillFrom(cacheItem);
+                    }
+                    else
+                    {
+                        //проверим все подчиненные
+                        foreach (var listItem in item.Items)
+                        {
+                            if (listItem.ModifyTime < listItem.LastSyncTime)
+                            {
+                                var cacheItem2 = cacheItem.FindItem(listItem.Name);
+                                if (cacheItem2 == null) continue;
+
+                                item.FillFrom(cacheItem2);
+                            }
                         }
                     }
                 }
@@ -136,6 +146,11 @@ namespace SimpleListsOfCloud
                 {
                     StartNode.Items.Add(item.Copy());
                 }
+            }
+
+            foreach (var item in forDelete)
+            {
+                StartNode.Delete(item);
             }
         }
 

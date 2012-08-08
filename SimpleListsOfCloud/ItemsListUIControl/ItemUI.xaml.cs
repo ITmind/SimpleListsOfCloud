@@ -67,13 +67,7 @@ namespace SimpleListsOfCloud
                 var result = Visibility.Collapsed;
                 if (Tag != null && ((ListItem)Tag).Items.Count>0)
                 {
-                    if (App.Current.Settings.ShowNumTask == ShowNumTaskEnum.None) { 
-                        result = Visibility.Collapsed;
-                    }
-                    else
-                    {
-                        result = Visibility.Visible;
-                    }
+                    result = App.Current.Settings.ShowNumTask == ShowNumTaskEnum.None ? Visibility.Collapsed : Visibility.Visible;
                 }
                 return result;
             }
@@ -144,7 +138,8 @@ namespace SimpleListsOfCloud
                     markComplite.Visibility = Visibility.Collapsed;
                 }
                 itemBorder.Background = new SolidColorBrush(curColor);
-                
+
+                OnPropertyChanged("NumItems");
             }
         }
 
@@ -188,6 +183,8 @@ namespace SimpleListsOfCloud
             OnDragCompleted((object)this.LayoutRoot, (Microsoft.Phone.Controls.GestureEventArgs)null);
         }
 
+        #region Getsures
+        
         private void OnDragCompleted(object sender, Microsoft.Phone.Controls.GestureEventArgs e)
         {
             if (DisableGesture)
@@ -297,7 +294,8 @@ namespace SimpleListsOfCloud
             _reorderStarted = false;
             AnimationUtil.zoom(this, 0.0, 100, null);
         }
-
+        #endregion
+        
         private void onKeyUp(object sender, KeyEventArgs e)
         {
             //Debug.WriteLine(e.Key);
@@ -364,7 +362,7 @@ namespace SimpleListsOfCloud
                     }
                     else
                     {
-                        ((ListItem)Tag).Name = text.Text;
+                        ((ListItem)Tag).SetNewName(text.Text);
                     }
                 }
             }
@@ -377,7 +375,10 @@ namespace SimpleListsOfCloud
 
         private void UserControl_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            listbox.UpdateItemGrid();
+            if (_textFocused)
+            {
+                listbox.UpdateItemGrid();
+            }
         }
 
         private void tapZoneForEditText_Tap(object sender, System.Windows.Input.GestureEventArgs e)

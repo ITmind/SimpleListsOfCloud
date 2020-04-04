@@ -257,10 +257,16 @@ namespace SimpleListsOfCloud
         protected override void OnNavigatedTo(System.Windows.Navigation.NavigationEventArgs e)
         {
             if (e.NavigationMode != NavigationMode.Back)
-            {                
+            {
                 _backgroundLogin.RunWorkerAsync();
                 _syncAnim.Interval = new TimeSpan(0, 0, 0, 0, 100);
                 _syncAnim.Tick += SyncAnimTick;
+                tasklist_listbox.ListRefill += TasklistListboxListRefill;
+                tasklist_listbox.FillList(App.Current.ListItems.StartNode);       
+            }
+            else
+            {
+                tasklist_listbox.FillList(tasklist_listbox.CurrItem); 
             }
 
             base.OnNavigatedTo(e);
@@ -268,8 +274,6 @@ namespace SimpleListsOfCloud
         private void PhoneApplicationPage_Loaded(object sender, RoutedEventArgs e)
         {
             _loaded = true;
-            tasklist_listbox.ListRefill += TasklistListboxListRefill;
-            tasklist_listbox.FillList(App.Current.ListItems.StartNode);
             _clickSyncBtn = false;
 
             //backgroundLogin.RunWorkerAsync();

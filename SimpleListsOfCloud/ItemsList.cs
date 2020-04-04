@@ -158,6 +158,7 @@ namespace SimpleListsOfCloud
         {
             _cache.DeleteDeletedItems();
             _cache.SetModifyTime(_lastSyncTime);
+            _cache.SetLastSyncTime(_lastSyncTime);
             //зафиксируем время последней успешной синхронизации
             StartNode.SetLastSyncTime(_lastSyncTime);
             //удалим все помеченные на удаление и у которых время модификации меньше времени синхронизации

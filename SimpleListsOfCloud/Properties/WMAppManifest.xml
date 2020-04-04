@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Deployment xmlns="http://schemas.microsoft.com/windowsphone/2009/deployment" AppPlatformVersion="7.1">
-  <App xmlns="" ProductID="{13d9da0c-37c5-4a10-a3f1-765fd402c609}" Title="Cloud list" RuntimeType="Silverlight" Version="1.0.0.0" Genre="apps.normal" Author="ITmindCo" Description="Lists in SkyDrive" Publisher="ITmindCo">
+  <App xmlns="" ProductID="{13d9da0c-37c5-4a10-a3f1-765fd402c609}" Title="Cloud list" RuntimeType="Silverlight" Version="1.0.1.0" Genre="apps.normal" Author="ITmindCo" Description="Lists in SkyDrive" Publisher="ITmindCo">
     <IconPath IsRelative="true" IsResource="false">Images\icon_62_tr.png</IconPath>
     <Capabilities>
       <Capability Name="ID_CAP_GAMERSERVICES" />

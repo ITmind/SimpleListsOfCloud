@@ -120,8 +120,9 @@ namespace SimpleListsOfCloud
                         isMark = false;
                     }
 
-                    var item = parrentItem.FindItem(task, false) ?? parrentItem.Add(task, true);
+                    var item = parrentItem.FindItem(task) ?? parrentItem.Add(task, true);
                     item.Mark = childMark;
+                    item.Deleted = false;
                     loadedItems.Add(item);
 
                 }
@@ -133,7 +134,10 @@ namespace SimpleListsOfCloud
                     parrentItem.Delete(item);
                 }
 
-                parrentItem.Mark = parrentItem.Items.Count > 0 && isMark;
+                if (parrentItem.Items.Count > 0)
+                {
+                    parrentItem.Mark = isMark;
+                }
             }
             else if(e.Error!=null)
             {

@@ -55,21 +55,35 @@ namespace SimpleListsOfCloud
             InitializeComponent();
             this.Loaded += (RoutedEventHandler)((s, e) => _scrollViewer = UiUtil.FindChildOfType<ScrollViewer>((DependencyObject)listbox));
             _backgroundAdd.DoWork += BackgroundAddDoWork;
+            _backgroundAdd.RunWorkerCompleted += new RunWorkerCompletedEventHandler(_backgroundAdd_RunWorkerCompleted);
+        }
+
+        void _backgroundAdd_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            UpdateColor();
         }
 
         void BackgroundAddDoWork(object sender, DoWorkEventArgs e)
         {
-            for (int i = 11; i < CurrItem.Items.Count; i++)
+            int num = 0;
+            for (int i = 0; i < CurrItem.Items.Count; i++)
             {
                 int i1 = i;
-                Dispatcher.BeginInvoke(() =>
-                                           {
-                                               if (!CurrItem.Items[i1].Deleted)
+                
+                if (num >= 10)
+                {
+                    Dispatcher.BeginInvoke(() =>
                                                {
-                                                   AddItem(CurrItem.Items[i1]);
-                                               }
-                                               itemGrid.UpdateLayout();
-                                           });
+                                                   if (!CurrItem.Items[i1].Deleted)
+                                                   {
+                                                       AddItem(CurrItem.Items[i1]);
+                                                   }
+                                                   itemGrid.UpdateLayout();
+                                               });
+                }
+
+                if(CurrItem.Items[i].Deleted) continue;
+                num++;
 
             }
         }
@@ -399,9 +413,12 @@ namespace SimpleListsOfCloud
             int num = IndexOfItem(item);
             itemGrid.Children.Remove(item);            
             UpdateItemGridHeight();
-            for (int idx = num; idx < itemGrid.Children.Count; ++idx)
-                AnimationUtil.translateY((FrameworkElement)itemGrid.Children[idx], IdxToPosition(idx), 100, null);
-            SortZIndex();
+            if (num >= 0)
+            {
+                for (int idx = num; idx < itemGrid.Children.Count; ++idx)
+                    AnimationUtil.translateY((FrameworkElement)itemGrid.Children[idx], IdxToPosition(idx), 100, null);
+                SortZIndex();
+            }
         }
 
         public void UpdateItemGrid(int animSpeed = 100)

@@ -129,8 +129,8 @@ namespace SimpleListsOfCloud
         {
             Items = new ObservableCollection<ListItem>();       
             Name = "_StartNode";
-            ModifyTime = DateTime.Now;
-            LastSyncTime = ModifyTime.Subtract(new TimeSpan(0, 0, 5));
+            //ModifyTime = DateTime.Now;
+            //LastSyncTime = ModifyTime.Subtract(new TimeSpan(0, 0, 5));
             Deleted = false;
             Mark = false;
         }
@@ -259,8 +259,11 @@ namespace SimpleListsOfCloud
                 {
                     Items.Insert(0, newItem);    
                 }
-                
-                OnAddItem(new ListItemEventArgs(newItem));
+
+                if (!addInEnd)
+                {
+                    OnAddItem(new ListItemEventArgs(newItem));
+                }
                 return newItem;
             }
 

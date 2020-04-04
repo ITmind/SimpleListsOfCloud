@@ -107,7 +107,7 @@ namespace SimpleListsOfCloud
             {
                 MessageBox.Show("More than 100 reminders established. Adding a new abolished.");
             }
-            else
+            else if (start>DateTime.Now)
             {
                 var r = new Reminder(_item.ReminderName)
                 {
@@ -116,6 +116,10 @@ namespace SimpleListsOfCloud
                     Title = NameEvent
                 };
                 ScheduledActionService.Add(r); 
+            }
+            else
+            {
+                MessageBox.Show("Wrong start time");
             }
 
             App.Current.ListItems.Save();
